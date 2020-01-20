@@ -2,9 +2,19 @@
 
 ![BJOTPViewController Banner](banner.png)
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/BadhanGanesh/BJOTPViewController)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/BadhanGanesh/BJOTPViewController)
+![GitHub issues](https://img.shields.io/github/issues/BadhanGanesh/BJOTPViewController)
+![GitHub top language](https://img.shields.io/github/languages/top/BadhanGanesh/BJOTPViewController?color=green)
+![GitHub](https://img.shields.io/github/license/BadhanGanesh/BJOTPViewController)
+
+![StackOverflow Profile](https://img.shields.io/static/v1?label=Profile&message=StackOverflow&color=orange&link=https://stackoverflow.com/users/5912335/badhanganesh?tab=profile)
+![Twitter Follow](https://img.shields.io/twitter/follow/badhanganesh?style=social)
+
 A very simple and neat-looking view controller that lets you type in OTP's quick and easy.
 
 This is intended to be a drag and drop view controller that gets the work done quickly, in and out, that's it. No fancy customizations, no cluttering the screen with tons of UI elements and crazy colors. You'll be good to go with the default settings.
+
 
 ## Supports
 
@@ -16,7 +26,16 @@ This is intended to be a drag and drop view controller that gets the work done q
 
 ✅ Portrait | Landscape
 
+
+## Features
+
+✅ Keyboard handling
+
+✅ Copy-Paste handling
+
 ✅ Light mode | Dark mode
+
+✅ Apple-inspired Clean User Interface
 
 
 ## Installation
@@ -33,6 +52,7 @@ This is intended to be a drag and drop view controller that gets the work done q
 ![App Screens 1](app_screens_1.png)
 -----
 ![App Screens 2](app_screens_2.png)
+
 
 ## Usage
 
@@ -83,15 +103,22 @@ oneTimePasswordVC.currentTextFieldColor = UIColor.systemOrange
 oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
 ```
 
+
 ## Upcoming Features
 
+- Support for Mac Catalyst.
 - Auto-completion of One Time Password into text fields from messages app.
-- Addition of custom header / footer texts / description titles to the view controller.
+- Addition of custom header text / footer text / description title to the view controller.
+- Auto-completion of One Time Password from clipboard when copied from authenticator apps like **Google Authenticator**.
+
 
 ## Contribution
 
 - Pull Requests are always welcome. 😇
-- Feel free to create issues, if any, and improve the existing codebase.
+- Feel free to create GitHub Issues when you face any problem, or for new feature-requests.
+- Please follow [GitFlow](https://nvie.com/posts/a-successful-git-branching-model/) for raising PR's.
+
+Thanks for checking out, and thanks for your contribution.
 
 ## License
 
