@@ -17,6 +17,7 @@
     <img alt="Twitter: badhanganesh" src="https://img.shields.io/twitter/follow/badhanganesh?style=social" target="_blank" />
 </a>
 
+&nbsp;
 
 A very simple and neat-looking view controller that lets you type in OTP's quick and easy.
 
