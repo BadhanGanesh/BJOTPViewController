@@ -6,10 +6,17 @@
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/BadhanGanesh/BJOTPViewController)
 ![GitHub issues](https://img.shields.io/github/issues/BadhanGanesh/BJOTPViewController)
 ![GitHub top language](https://img.shields.io/github/languages/top/BadhanGanesh/BJOTPViewController?color=green)
-![GitHub](https://img.shields.io/github/license/BadhanGanesh/BJOTPViewController)
+<a href="https://github.com/BadhanGanesh/BJOTPViewController/blob/master/LICENSE" target="_blank">
+    <img alt="GitHub: License" src="https://img.shields.io/github/license/BadhanGanesh/BJOTPViewController" target="_blank" />
+</a>
 
-![StackOverflow Profile](https://img.shields.io/static/v1?label=Profile&message=StackOverflow&color=orange&link=https://stackoverflow.com/users/5912335/badhanganesh?tab=profile)
-![Twitter Follow](https://img.shields.io/twitter/follow/badhanganesh?style=social)
+<a href="https://stackoverflow.com/users/5912335/badhanganesh?tab=profile" target="_blank">
+    <img alt="StackOverflow: badhanganesh" src="https://img.shields.io/static/v1?label=Profile&message=StackOverflow&color=orange" target="_blank" />
+</a>
+<a href="https://twitter.com/intent/follow?screen_name=badhanganesh" target="_blank">
+    <img alt="Twitter: badhanganesh" src="https://img.shields.io/twitter/follow/badhanganesh?style=social" target="_blank" />
+</a>
+
 
 A very simple and neat-looking view controller that lets you type in OTP's quick and easy.
 
