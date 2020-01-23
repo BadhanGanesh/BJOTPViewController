@@ -40,7 +40,7 @@ import UIKit
      *
      * - Author: Badhan Ganesh
      */
-    @objc func authenticate(from viewController: BJOTPViewController)
+    @objc func authenticate(_ otp: String, from viewController: BJOTPViewController)
 }
 
 /**
@@ -136,11 +136,13 @@ public class BJOTPViewController: UIViewController {
     }
     
     @objc func authenticateButtonTapped(_ sender: UIButton) {
+        var otpString = ""
         let numberOfEmptyTextFields: Int = allTextFields.reduce(0, { emptyTextsCount, textField in
+            otpString += textField.text!
             return(textField.text ?? "") == "" ? emptyTextsCount + 1 : emptyTextsCount
         })
         if numberOfEmptyTextFields > 0 { return }
-        self.delegate?.authenticate(from: self)
+        self.delegate?.authenticate(otpString, from: self)
     }
     
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -179,7 +181,7 @@ extension BJOTPViewController: UITextFieldDelegate {
                 }
                 textField.resignFirstResponder()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    self.delegate?.authenticate(from: self)
+                    self.delegate?.authenticate(string, from: self)
                 }
                 ///If the replacing string is of 1 character length, then we just allow it to be replaced
                 ///and set the responder to be the next text field
@@ -189,8 +191,8 @@ extension BJOTPViewController: UITextFieldDelegate {
             }
         } else {
             if range.length == 0 {
-                setNextResponder(textFieldsIndexes[textField as! BJOTPTextField], direction: .right)
                 textField.text = string
+                setNextResponder(textFieldsIndexes[textField as! BJOTPTextField], direction: .right)
             } else if range.length == 1 {
                 setNextResponder(textFieldsIndexes[textField as! BJOTPTextField], direction: string.isEmpty ? .left : .right)
                 textField.text = string.isEmpty ? "" : string
@@ -225,17 +227,15 @@ extension BJOTPViewController: UITextFieldDelegate {
     }
     
     private func resignFirstResponder(textField: BJOTPTextField?) {
-        
         textField?.resignFirstResponder()
-        
+        var otpString = ""
         let numberOfEmptyTextFields: Int = allTextFields.reduce(0, { emptyTextsCount, textField in
+            otpString += textField.text!
             return (textField.text ?? "").isEmpty ? emptyTextsCount + 1 : emptyTextsCount
         })
-        
-        if numberOfEmptyTextFields != 1 { return }
-        
+        if numberOfEmptyTextFields > 0 { return }
         if let delegate = delegate {
-            delegate.authenticate(from: self)
+            delegate.authenticate(otpString, from: self)
         } else {
             fatalError("Delegate is nil in BJTOPViewController.")
         }

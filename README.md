@@ -75,11 +75,11 @@ self.present(oneTimePasswordVC, animated: true, completion: nil)
 ```swift
 //Conform to BJOTPViewControllerDelegate
 extension ViewController: BJOTPViewControllerDelegate {
-    func authenticate(from viewController: BJOTPViewController) {
+    func authenticate(_ otp: String, from viewController: BJOTPViewController) {
         // Make API calls, show loading animation in viewController, do whatever you want.
         // You can dismiss the viewController when you're done.
         // This method will get called only after the validation is successful, i.e.,
-        // after the user has filled all the textfields.  
+        // after the user has filled all the textfields.
     }
 }
 ```
