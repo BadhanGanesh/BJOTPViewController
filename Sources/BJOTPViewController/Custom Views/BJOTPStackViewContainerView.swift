@@ -28,7 +28,7 @@
 
 import UIKit
 
-class BJOTPStackViewContainerView: UIView {
+final class BJOTPStackViewContainerView: UIView {
     
     var newWidth: CGFloat {
         get {

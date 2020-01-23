@@ -54,14 +54,12 @@ import UIKit
  *
  * - Author: Badhan Ganesh
  */
-public class BJOTPViewController: UIViewController {
+open class BJOTPViewController: UIViewController {
     
-    /**
-     * The delegate object that is responsible for performing the actual authentication/verification process (with server via api call or whatever)
-     *
-     * - Author: Badhan Ganesh
-     */
-    private var delegate: BJOTPViewControllerDelegate? = nil
+    private var headingString: String
+    private let numberOfOtpCharacters: Int
+    private var allTextFields: [BJOTPTextField] = []
+    private var textFieldsIndexes: [BJOTPTextField:Int] = [:]
     
     private var closeButton: UIButton!
     private var stackView: UIStackView!
@@ -71,6 +69,13 @@ public class BJOTPViewController: UIViewController {
     private var authenticateButton: BJOTPAuthenticateButton!
     private var containerViewForStackView: BJOTPStackViewContainerView!
     private var stackContainerViewCenterYConstraint: NSLayoutConstraint!
+    
+    /**
+     * The delegate object that is responsible for performing the actual authentication/verification process (with server via api call or whatever)
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc public var delegate: BJOTPViewControllerDelegate? = nil
     
     /**
      * The color that will be used overall for the UI elements. Set this if you want a common color to be used in the view controller instead of worrying about each UI element's color.
@@ -106,11 +111,6 @@ public class BJOTPViewController: UIViewController {
      */
     @objc public var authenticateButtonTitle: String = "AUTHENTICATE"
     
-    private var headingString: String
-    private let numberOfOtpCharacters: Int
-    private var allTextFields: [BJOTPTextField] = []
-    private var textFieldsIndexes: [BJOTPTextField:Int] = [:]
-    
     
     @objc public init(withHeading heading: String = "One Time Password",
                       withNumberOfCharacters numberOfOtpCharacters: Int,
@@ -121,14 +121,14 @@ public class BJOTPViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
     
-    required init?(coder: NSCoder) {
+    required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        self.constructUI()
         self.configureKeyboardNotifications()
+        self.constructUI()
     }
     
     public override func viewDidAppear(_ animated: Bool) {
@@ -312,7 +312,7 @@ extension BJOTPViewController {
         textField.backgroundColor = .white
         textField.isSecureTextEntry = true
         textField.keyboardType = .numberPad
-        textField.setBorder(amount: 1.8, borderColor: UIColor.lightGray.withAlphaComponent(0.3), duration: 0.09)
+        textField.setBorder(amount: 1.8, borderColor: UIColor.lightGray.withAlphaComponent(0.28), duration: 0.09)
         textField.heightAnchor.constraint(equalTo: textField.widthAnchor, multiplier: 1.0).isActive = true
         
         return textField
@@ -427,19 +427,6 @@ extension BJOTPViewController {
     
 }
 
-extension UILabel {
-    open override func updateConstraints() {
-        if self.tag == 2245 {
-            for constraint in constraints {
-                if constraint.identifier == "Width" {
-                    constraint.constant = UIScreen.main.bounds.size.width * ( deviceIsiPad ? 60 : 80) / 100
-                }
-            }
-        }
-        super.updateConstraints()
-    }
-}
-
 ////////////////////////////////////////////////////////////////
 //MARK:-
 //MARK: Keyboard Handling Extensions
@@ -460,11 +447,19 @@ extension BJOTPViewController {
     }
     
     @objc func keyboardWillShow(_ notification: Notification) {
-        self.offsetForKeyboardPosition(notification as NSNotification)
+        /**
+         * Need this delay for the UI to finish being laid out
+         * to check if the keyboard is obscuring the button or not initially.
+         */
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            self.offsetForKeyboardPosition(notification as NSNotification)
+        }
     }
     
     @objc func keyboardWillHide(_ notification: Notification) {
-        self.resetToDefaultOffsetKeyboardPosition(notification as NSNotification)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            self.resetToDefaultOffsetForKeyboardPosition(notification as NSNotification)
+        }
     }
     
     fileprivate func offsetForKeyboardPosition(_ notification: NSNotification) {
@@ -484,17 +479,17 @@ extension BJOTPViewController {
         
         ///Means the keyboard overlaps the auth button
         if (self.authenticateButton.frame.maxY) > keyboardLocalCoordinatesFrame?.origin.y ?? 0 {
-            UIView.animate(withDuration: 0.3) {
+            UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
                 if self.keyboardOffset == 0 {
                     self.keyboardOffset = self.deviceIsiPad ? 110 : 50
                     self.stackContainerViewCenterYConstraint.constant -= self.keyboardOffset
                     self.view.layoutIfNeeded()
                 }
-            }
+            }, completion: nil)
         }
     }
     
-    fileprivate func resetToDefaultOffsetKeyboardPosition(_ notification: NSNotification) {
+    fileprivate func resetToDefaultOffsetForKeyboardPosition(_ notification: NSNotification) {
         
         var keyboardFrameBeginKey = ""
         
@@ -513,20 +508,20 @@ extension BJOTPViewController {
             let keyboardLocalCoordinatesFrame = UIApplication.shared.windows.first?.convert(keyboardFrame, to: self.view)
             
             guard (keyboardLocalCoordinatesFrame?.size.height ?? 0) > CGFloat(0) else {
-                UIView.animate(withDuration: 0.3) {
+                UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
                     self.stackContainerViewCenterYConstraint.constant += self.keyboardOffset
                     self.keyboardOffset = 0.0
                     self.view.layoutIfNeeded()
-                }
+                }, completion: nil)
                 return
             }
             
-            if (self.authenticateButton.frame.maxY) >= ((keyboardLocalCoordinatesFrame?.origin.y ?? 0) - 40) {
-                UIView.animate(withDuration: 0.3) {
+            if (self.authenticateButton.frame.maxY) >= ((keyboardLocalCoordinatesFrame?.origin.y ?? 0) - self.keyboardOffset) {
+                UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
                     self.stackContainerViewCenterYConstraint.constant += self.keyboardOffset
                     self.keyboardOffset = 0.0
                     self.view.layoutIfNeeded()
-                }
+                }, completion: nil)
             }
         }
     }
@@ -535,11 +530,24 @@ extension BJOTPViewController {
 
 extension BJOTPViewController {
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        UIView.animate(withDuration: 0.3) {
+        UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
             self.stackContainerViewCenterYConstraint.constant += self.keyboardOffset
             self.keyboardOffset = 0.0
             self.view.layoutIfNeeded()
-        }
+        }, completion: nil)
         self.view.endEditing(true)
+    }
+}
+
+extension UILabel {
+    open override func updateConstraints() {
+        if self.tag == 2245 {
+            for constraint in constraints {
+                if constraint.identifier == "Width" {
+                    constraint.constant = UIScreen.main.bounds.size.width * ( deviceIsiPad ? 60 : 80) / 100
+                }
+            }
+        }
+        super.updateConstraints()
     }
 }

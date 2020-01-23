@@ -28,7 +28,7 @@
 
 import UIKit
 
-class BJOTPAuthenticateButton: UIButton {
+final class BJOTPAuthenticateButton: UIButton {
     
     init() {
         super.init(frame: .zero)
