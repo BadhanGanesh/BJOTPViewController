@@ -32,19 +32,19 @@ final class BJOTPStackViewContainerView: UIView {
     
     var newWidth: CGFloat {
         get {
-            if deviceIsiPad { return 400 }
-            return deviceIsInLandscape ?
-                (superview?.bounds.size.height)! / 1.2 :
-                (superview?.bounds.size.width)! / 1.2
+            if NSObject.deviceIsiPad { return 400 }
+            return NSObject.deviceIsInLandscape ?
+                UIScreen.main.bounds.height / 1.2 :
+                UIScreen.main.bounds.width / 1.2
         }
     }
     
     var newHeight: CGFloat {
         get {
-            if deviceIsiPad { return 70 }
-            return deviceIsInLandscape ?
-                (superview?.bounds.size.width)! / 11.0 :
-                (superview?.bounds.size.height)! / 11.0
+            if NSObject.deviceIsiPad { return 70 }
+            return NSObject.deviceIsInLandscape ?
+                UIScreen.main.bounds.width / 11.0 :
+                UIScreen.main.bounds.height / 11.0
         }
     }
     
@@ -59,4 +59,24 @@ final class BJOTPStackViewContainerView: UIView {
         super.updateConstraints()
     }
     
+}
+
+extension NSObject {
+    static var newWidth: CGFloat {
+        get {
+            if deviceIsiPad { return 400 }
+            return deviceIsInLandscape ?
+                UIScreen.main.bounds.height / 1.2 :
+                UIScreen.main.bounds.width / 1.2
+        }
+    }
+    
+    static var newHeight: CGFloat {
+        get {
+            if deviceIsiPad { return 70 }
+            return deviceIsInLandscape ?
+                UIScreen.main.bounds.width / 11.0 :
+                UIScreen.main.bounds.height / 11.0
+        }
+    }
 }

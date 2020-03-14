@@ -19,13 +19,15 @@ This is intended to be a drag and drop view controller that gets the work done q
 
 ## Supports
 
-✅ iOS 9.0+
+✅ iOS 11.0+
 
 ✅ Swift 4.0+
 
 ✅ iOS | iPadOS
 
 ✅ Portrait | Landscape
+
+✅ Light Mode | Dark Mode
 
 
 ## Features
@@ -34,9 +36,9 @@ This is intended to be a drag and drop view controller that gets the work done q
 
 ✅ Copy-Paste handling
 
-✅ Light mode | Dark mode
-
 ✅ Apple-inspired Clean User Interface
+
+✅ Custom primay / secondary / footer labels
 
 
 ## Installation
@@ -104,20 +106,66 @@ oneTimePasswordVC.currentTextFieldColor = UIColor.systemOrange
 oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
 ```
 
+**Other options**
+
+```swift
+/**
+ * Setting this to true opens up the keyboard for the very first text field.
+ *
+ * Default is `false`. Consider the `hideLabelsWhenEditing` property when setting this one to `true`, because when the keyboard is open as soon as the view controller is presented/pushed, if `hideLabelsWhenEditing` is `true`, the labels will be hidden initially as a result, and the user won't even know that the labels exist. It will be a better user experience if the user sees the labels initially since it guides them what to do. Choose wisely.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var openKeyboadDuringStartup: Bool = false
+
+/**
+ * The title of the primary header which stays above the OTP textfields.
+ *
+ * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`). Changing this value after presenting or pushing `BJOTPViewController` won't have an effect; the label won't be constructed.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var primaryHeaderTitle: String?
+
+/**
+ * The title of the secondary header which comes below the primary header.
+ *
+ * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`). Changing this value after presenting or pushing `BJOTPViewController` won't have an effect; the label won't be constructed.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var secondaryHeaderTitle: String?
+
+/**
+ * The title of the footer label which comes below the authenticate button.
+ *
+ * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`). Changing this value after presenting or pushing `BJOTPViewController` won't have an effect; the label won't be constructed.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var footerTitle: String?
+
+/**
+ * Set whether the primary, secondary, and footer labels are to be hidden during editing, i.e., when the keyboard is open.
+ *
+ * Default is `false`
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var hideLabelsWhenEditing: Bool = false
+
+```
 
 ## Upcoming Features
 
-- Support for Mac Catalyst.
+- Support for Mac Catalyst (Works, but will crash the app when copy-pasting text).
 - Auto-completion of One Time Password into text fields from messages app.
-- Addition of custom header text / footer text / description title to the view controller.
-- Auto-completion of One Time Password from clipboard when copied from authenticator apps like **Google Authenticator**.
+- Auto-completion of One Time Password from clipboard when copied from authenticator apps like **Google Authenticator** etc.
 
 
 ## Contribution
 
-- Pull Requests are always welcome. 😇
-- Feel free to create GitHub Issues when you face any problem, or for new feature-requests.
-- Please follow [GitFlow](https://nvie.com/posts/a-successful-git-branching-model/) for raising PR's.
+- Pull Requests are always welcome. Would love to see your inputs.
 
 Thanks for checking out, and thanks for your contribution.
 

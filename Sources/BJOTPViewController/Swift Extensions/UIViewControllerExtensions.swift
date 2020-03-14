@@ -36,7 +36,7 @@ extension UIViewController {
      *
      * - Parameter title: The title string (appears at the top of the alert with bold letters).
      * - Parameter message: The message string (appears below the title).
-     * 
+     *
      * - Author: Badhan Ganesh
      */
     @objc func showSimpleAlertWithTitle(_ title:String? = nil, message:String? = nil) {
@@ -49,6 +49,12 @@ extension UIViewController {
     
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         self.view.endEditing(true)
+    }
+    
+    var navBarHeight: CGFloat {
+        get {
+            return (self.navigationController?.navigationBar.bounds.height ?? 0)
+        }
     }
     
 }

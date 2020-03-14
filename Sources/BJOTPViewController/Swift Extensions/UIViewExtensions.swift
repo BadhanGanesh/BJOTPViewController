@@ -113,7 +113,7 @@ extension UIView {
             ////////Remove old added constraints////////
             ////////////////////////////////////////////
             
-            if constraint.identifier?.contains("BJConstraint") ?? false {
+            if constraint.identifier?.contains("BJConstraint - \(self.pointerString)") ?? false {
                 constraint.isActive = false
                 superview.removeConstraint(constraint)
             }
@@ -141,22 +141,22 @@ extension UIView {
         ///////////////////////////////////////////////
         
         let centerXConstraint = self.centerXAnchor.constraint(equalTo: superview.centerXAnchor, constant: xOffset)
-        centerXConstraint.identifier = "BJConstraintCenterX"
+        centerXConstraint.identifier = "BJConstraintCenterX - \(self.pointerString)"
         
         let centerYConstraint = self.centerYAnchor.constraint(equalTo: superview.centerYAnchor, constant: yOffset)
-        centerYConstraint.identifier = "BJConstraintCenterY"
+        centerYConstraint.identifier = "BJConstraintCenterY - \(self.pointerString)"
         
         let leadingConstraint = self.leadingAnchor.constraint(equalTo: shouldConsiderSafeArea ? safeAreaLeadingAnchor! : superview.leadingAnchor, constant: xOffset)
-        leadingConstraint.identifier = "BJConstraintLeading"
+        leadingConstraint.identifier = "BJConstraintLeading - \(self.pointerString)"
         
         let trailingConstraint = self.trailingAnchor.constraint(equalTo: shouldConsiderSafeArea ? safeAreaTrailingAnchor! : superview.trailingAnchor, constant: xOffset)
-        trailingConstraint.identifier = "BJConstraintTrailing"
+        trailingConstraint.identifier = "BJConstraintTrailing - \(self.pointerString)"
         
         let topConstraint = self.topAnchor.constraint(equalTo: shouldConsiderSafeArea ? safeAreaTopAnchor! : superview.topAnchor, constant: yOffset)
-        topConstraint.identifier = "BJConstraintTop"
+        topConstraint.identifier = "BJConstraintTop - \(self.pointerString)"
         
         let bottomConstraint = self.bottomAnchor.constraint(equalTo: shouldConsiderSafeArea ? safeAreaBottomAnchor! : superview.bottomAnchor, constant: yOffset)
-        bottomConstraint.identifier = "BJConstraintBottom"
+        bottomConstraint.identifier = "BJConstraintBottom - \(self.pointerString)"
         
         ////////////////////////////////////////
         ////////Add relevant constraints////////
@@ -199,6 +199,22 @@ extension UIView {
         
     }
     
+    func change(yOffset y: CGFloat = 0.0) -> NSLayoutConstraint? {
+        if let superview = superview {
+            for constraint in superview.constraints {
+                if constraint.identifier == "BJConstraintCenterY - \(self.pointerString)" {
+                    superview.removeConstraint(constraint)
+                    let constraintToAdd = self.centerYAnchor.constraint(equalTo: superview.centerYAnchor)
+                    constraintToAdd.identifier = "BJConstraintCenterY - \(self.pointerString)"
+                    constraintToAdd.isActive = true
+                    constraintToAdd.constant += y
+                    return constraintToAdd
+                }
+            }
+        }
+        return nil
+    }
+    
     /**
      
      Adds soft shadow to view.
@@ -233,12 +249,10 @@ extension UIView {
      - Author: Badhan Ganesh
      */
     @objc func setBorder(amount: CGFloat, borderColor: UIColor = .clear, duration: TimeInterval) {
-        UIView.transition(with: self, duration: duration, options: .transitionCrossDissolve, animations: {
-            self.layer.masksToBounds = true
-            self.clipsToBounds = true
-            self.layer.borderColor = borderColor.cgColor
-            self.layer.borderWidth = amount
-        }, completion: nil)
+        self.layer.masksToBounds = true
+        self.clipsToBounds = true
+        self.layer.borderColor = borderColor.cgColor
+        self.layer.borderWidth = amount
     }
     
     /**
@@ -303,7 +317,7 @@ extension NSObject {
     
     /**
      * Returns a string representation of the memory address of the object.
-     * 
+     *
      * - Author: Badhan Ganesh
      */
     var pointerString: String {
@@ -315,7 +329,7 @@ extension NSObject {
      *
      * - Author: Badhan Ganesh
      */
-    var deviceIsInLandscape: Bool {
+    static var deviceIsInLandscape: Bool {
         get {
             return (UIScreen.main.bounds.width > UIScreen.main.bounds.height)
         }
@@ -326,9 +340,15 @@ extension NSObject {
      *
      * - Author: Badhan Ganesh
      */
-    var deviceIsiPad: Bool {
+    static var deviceIsiPad: Bool {
         get {
             return UIDevice.current.userInterfaceIdiom == .pad
+        }
+    }
+    
+    static var statusBarHeight: CGFloat {
+        get {
+            return NSObject.deviceIsInLandscape ? 0 : 20
         }
     }
     

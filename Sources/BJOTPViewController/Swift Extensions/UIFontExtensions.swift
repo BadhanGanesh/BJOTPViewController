@@ -50,7 +50,7 @@ extension UIFont {
         let deviceWidth:Double = Double(UIScreen.main.bounds.width)
         let deviceHeight:Double = Double(UIScreen.main.bounds.height)
         
-        let aspectRatio = deviceIsInLandscape ? deviceHeight/deviceWidth : deviceWidth/deviceHeight
+        let aspectRatio = NSObject.deviceIsInLandscape ? deviceHeight/deviceWidth : deviceWidth/deviceHeight
         
         /////////////////////////////////////
         //////Decide primary multiplier//////
