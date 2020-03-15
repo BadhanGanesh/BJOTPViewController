@@ -36,6 +36,7 @@ import UIKit
      *
      * This method will get called only after the validation is successful, i.e., after the user has filled all the text fields.
      *
+     * - Parameter otp: The full otp string entered.
      * - Parameter viewController: The otp view controller.
      *
      * - Author: Badhan Ganesh
