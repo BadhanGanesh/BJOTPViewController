@@ -57,6 +57,10 @@ import UIKit
  */
 open class BJOTPViewController: UIViewController {
     
+    private var autoFillingFromSMS = false
+    private var autoFillBuffer: [String] = []
+    private var timeIntervalBetweenKeyStrokes: Date?
+    
     private var headingString: String
     private let numberOfOtpCharacters: Int
     private var allTextFields: [BJOTPTextField] = []
@@ -236,12 +240,21 @@ extension BJOTPViewController: UITextFieldDelegate {
     public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         
         if string.count > self.numberOfOtpCharacters { return false }
+        if ((string == "" || string == " ") && range.length == 0) {
+            if string == "" {
+                if let oldInterval = timeIntervalBetweenKeyStrokes {
+                    if Date().timeIntervalSince(oldInterval) < 0.05 {
+                        self.autoFillingFromSMS = true
+                        timeIntervalBetweenKeyStrokes = nil
+                    }
+                }
+                timeIntervalBetweenKeyStrokes = Date()
+            }
+            return false
+        }
         
-        if ((string == "" || string == " ") && range.length == 0) { return false }
-        
-        ///Checking if the string is the same the content that is present in clipboard.
-        ///Use this condition to determine if text is copy-pasted.
-        if string == UIPasteboard.general.string ?? "<empty-clipboard>" {
+        ///Use this condition to determine if text is pasted.
+        if string.count > 1 {
             ///If the string is of the same length as the number of otp characters, then we proceed to
             ///fill all the text fields with the characters
             if string.count == numberOfOtpCharacters {
@@ -259,6 +272,27 @@ extension BJOTPViewController: UITextFieldDelegate {
                 textField.text = string
             }
         } else {
+            if autoFillingFromSMS {
+                self.masterStackView.layoutIfNeeded()
+                var finalOTP = ""
+                autoFillBuffer.append(string)
+                NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(BJOTPViewController.checkOtpFromMessagesCount), object: nil)
+                self.perform(#selector(BJOTPViewController.checkOtpFromMessagesCount), with: nil, afterDelay: 0.1)
+                if autoFillBuffer.count == numberOfOtpCharacters {
+                    for (idx, element) in autoFillBuffer.enumerated() {
+                        let otpChar = String(element)
+                        finalOTP += otpChar
+                        allTextFields[idx].text = otpChar
+                    }
+                    textField.resignFirstResponder()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        self.delegate?.authenticate(finalOTP, from: self)
+                    }
+                    autoFillingFromSMS = false
+                    autoFillBuffer.removeAll()
+                }
+                return false
+            }
             if range.length == 0 {
                 textField.text = string
                 setNextResponder(textFieldsIndexes[textField as! BJOTPTextField], direction: .right)
@@ -307,6 +341,19 @@ extension BJOTPViewController: UITextFieldDelegate {
             delegate.authenticate(otpString, from: self)
         } else {
             fatalError("Delegate is nil in BJTOPViewController.")
+        }
+    }
+    
+    /**
+     * This method detects if the auto-filled code from SMS is less than that of the allowed number of characters.
+     *
+     * This checking needs to be done to come to a conclusion on when to populate the code (stored in `autoFillBuffer`) in text fields from SMS. Also this checking has to be done becuase of not allowing iOS to auto-fill the code, and we're doing it manually ourselves.
+     *
+     */
+    @objc private func checkOtpFromMessagesCount() {
+        if autoFillBuffer.count < numberOfOtpCharacters {
+            autoFillingFromSMS = false
+            autoFillBuffer.removeAll()
         }
     }
     
@@ -390,6 +437,10 @@ extension BJOTPViewController {
     @discardableResult fileprivate func otpTextField() -> BJOTPTextField {
         
         let textField = BJOTPTextField()
+        
+        if #available(iOS 12.0, *) {
+            textField.textContentType = .oneTimeCode
+        }
         
         textField.tarmic = false
         textField.delegate = self
@@ -626,13 +677,13 @@ extension BJOTPViewController {
         let window = UIApplication.shared.windows.first
         let userInfo = (notification as NSNotification).userInfo!
         let keyboardFrame = (userInfo[keyboardFrameEndKey] as! NSValue).cgRectValue
-        let authButtonLocalY = self.masterStackView.convert(self.authenticateButton.frame, to: window).maxY
-        let keyboardLocalY = keyboardFrame.origin.y
+        let authButtonMaxY = self.masterStackView.convert(self.authenticateButton.frame, to: window).maxY
+        let keyboardMinY = keyboardFrame.origin.y
         
         ///Means the keyboard overlaps the auth button
-        if authButtonLocalY > keyboardLocalY {
+        if authButtonMaxY > keyboardMinY {
             UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
-                self.keyboardOffset = (authButtonLocalY - keyboardLocalY + (NSObject.self.deviceIsiPad ? 10 : 5))
+                self.keyboardOffset = (authButtonMaxY - keyboardMinY + (NSObject.self.deviceIsiPad ? 10 : 5))
                 self.masterStackViewCenterYConstraint.constant -= self.keyboardOffset
                 self.setLabelsAlpha(0.0)
                 self.view.layoutIfNeeded()
@@ -642,12 +693,12 @@ extension BJOTPViewController {
     
     fileprivate func resetToDefaultOffsetForKeyboardPosition(_ notification: NSNotification) {
         
-        var keyboardFrameBeginKey = ""
+        var keyboardFrameEndKey = ""
         
         #if swift(>=5.0)
-        keyboardFrameBeginKey = UIResponder.keyboardFrameBeginUserInfoKey
+        keyboardFrameEndKey = UIResponder.keyboardFrameEndUserInfoKey
         #elseif swift(<5.0)
-        keyboardFrameBeginKey = UIKeyboardFrameBeginUserInfoKey
+        keyboardFrameEndKey = UIKeyboardFrameEndUserInfoKey
         #endif
         
         if isKeyBoardOn {
@@ -655,7 +706,7 @@ extension BJOTPViewController {
             self.isKeyBoardOn = false
             let window = UIApplication.shared.windows.first
             let userInfo = (notification as NSNotification).userInfo!
-            let keyboardFrame = (userInfo[keyboardFrameBeginKey] as! NSValue).cgRectValue
+            let keyboardFrame = (userInfo[keyboardFrameEndKey] as! NSValue).cgRectValue
             let authButtonLocalY = self.masterStackView.convert(self.authenticateButton.frame, to: window).maxY
             let keyboardLocalY = keyboardFrame.origin.y
             let keyboardLocalHeight = window?.convert(keyboardFrame, to: self.view).height ?? 0
