@@ -59,7 +59,8 @@ open class BJOTPViewController: UIViewController {
     
     private var autoFillingFromSMS = false
     private var autoFillBuffer: [String] = []
-    private var timeIntervalBetweenKeyStrokes: Date?
+    private var didTapToDismissKeyboard = false
+    private var timeIntervalBetweenAutofillCharacters: Date?
     
     private var headingString: String
     private let numberOfOtpCharacters: Int
@@ -80,6 +81,7 @@ open class BJOTPViewController: UIViewController {
     
     private var authenticateButton: BJOTPAuthenticateButton!
     private var masterStackViewCenterYConstraint: NSLayoutConstraint!
+    private var originalMasterStackViewCenterYConstraintConstant: CGFloat!
     
     /**
      * The delegate object that is responsible for performing the actual authentication/verification process (with server via api call or whatever)
@@ -188,6 +190,7 @@ open class BJOTPViewController: UIViewController {
     
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        for tf in allTextFields { tf.insertText("") }
     }
     
     @objc func authenticateButtonTapped(_ sender: UIButton) {
@@ -217,11 +220,12 @@ open class BJOTPViewController: UIViewController {
         coordinator.animateAlongsideTransition(in: self.view, animation: { (coord) in
             let titleLabelHeight = (self.headingTitleLabel?.bounds.height ?? 0) / (NSObject.deviceIsInLandscape ? 1 : 2)
             let value = (titleLabelHeight - (self.headingTitleLabel == nil ? (-(self.navBarHeight + NSObject.statusBarHeight) / 2) : 25))
-            self.masterStackViewCenterYConstraint = self.masterStackView.change(yOffset: value - self.keyboardOffset)
+            self.masterStackViewCenterYConstraint.constant = self.originalMasterStackViewCenterYConstraintConstant - value + self.keyboardOffset
             self.primaryHeaderLabel?.sizeToFit()
             self.secondaryHeaderLabel?.sizeToFit()
             self.footerLabel?.sizeToFit()
             self.view.layoutIfNeeded()
+            if !NSObject.deviceIsInLandscape { self.setLabelsAlpha(1.0) }
         }, completion: nil)
     }
     
@@ -242,13 +246,13 @@ extension BJOTPViewController: UITextFieldDelegate {
         if string.count > self.numberOfOtpCharacters { return false }
         if ((string == "" || string == " ") && range.length == 0) {
             if string == "" {
-                if let oldInterval = timeIntervalBetweenKeyStrokes {
+                if let oldInterval = timeIntervalBetweenAutofillCharacters {
                     if Date().timeIntervalSince(oldInterval) < 0.05 {
                         self.autoFillingFromSMS = true
-                        timeIntervalBetweenKeyStrokes = nil
+                        timeIntervalBetweenAutofillCharacters = nil
                     }
                 }
-                timeIntervalBetweenKeyStrokes = Date()
+                timeIntervalBetweenAutofillCharacters = Date()
             }
             return false
         }
@@ -262,6 +266,7 @@ extension BJOTPViewController: UITextFieldDelegate {
                     allTextFields[idx].text = String(element)
                 }
                 textField.resignFirstResponder()
+                self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     self.delegate?.authenticate(string, from: self)
                 }
@@ -285,6 +290,7 @@ extension BJOTPViewController: UITextFieldDelegate {
                         allTextFields[idx].text = otpChar
                     }
                     textField.resignFirstResponder()
+                    self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         self.delegate?.authenticate(finalOTP, from: self)
                     }
@@ -331,6 +337,7 @@ extension BJOTPViewController: UITextFieldDelegate {
     
     private func resignFirstResponder(textField: BJOTPTextField?) {
         textField?.resignFirstResponder()
+        self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
         var otpString = ""
         let numberOfEmptyTextFields: Int = allTextFields.reduce(0, { emptyTextsCount, textField in
             otpString += textField.text!
@@ -424,6 +431,7 @@ extension BJOTPViewController {
         self.masterStackView.superview?.constraints.forEach { (constraint) in
             if constraint.identifier?.contains("BJConstraintCenterY - \(self.masterStackView.pointerString)") ?? false {
                 self.masterStackViewCenterYConstraint = constraint
+                self.originalMasterStackViewCenterYConstraintConstant = constraint.constant
             }
         }
     }
@@ -648,10 +656,29 @@ extension BJOTPViewController {
     }
     
     @objc func keyboardWillShow(_ notification: Notification) {
+        
+        var keyboardFrameBeginKey = ""
+        var keyboardFrameEndKey = ""
+        
+        #if swift(>=5.0)
+        keyboardFrameBeginKey = UIResponder.keyboardFrameBeginUserInfoKey
+        keyboardFrameEndKey = UIResponder.keyboardFrameEndUserInfoKey
+        #elseif swift(<5.0)
+        keyboardFrameBeginKey = UIKeyboardFrameBeginUserInfoKey
+        keyboardFrameEndKey = UIKeyboardFrameEndUserInfoKey
+        #endif
+        
+        let beginFrame = (notification.userInfo?[keyboardFrameBeginKey] as! NSValue).cgRectValue
+        let endFrame = (notification.userInfo?[keyboardFrameEndKey] as! NSValue).cgRectValue
+
+        guard beginFrame.equalTo(endFrame) == false else {
+            return
+        }
+        
         /**
-         * Need this delay for the UI to finish being laid out
-         * to check if the keyboard is obscuring the button or not initially.
-         */
+        * Need this delay for the UI to finish being laid out
+        * to check if the keyboard is obscuring the button or not initially.
+        */
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             self.offsetForKeyboardPosition(notification as NSNotification)
         }
@@ -663,7 +690,7 @@ extension BJOTPViewController {
         }
     }
     
-    fileprivate func offsetForKeyboardPosition(_ notification: NSNotification) {
+    @objc fileprivate func offsetForKeyboardPosition(_ notification: NSNotification) {
         
         var keyboardFrameEndKey = ""
         
@@ -680,10 +707,10 @@ extension BJOTPViewController {
         let authButtonMaxY = self.masterStackView.convert(self.authenticateButton.frame, to: window).maxY
         let keyboardMinY = keyboardFrame.origin.y
         
+        self.keyboardOffset = (authButtonMaxY - keyboardMinY + (NSObject.self.deviceIsiPad ? 10 : 5))
         ///Means the keyboard overlaps the auth button
         if authButtonMaxY > keyboardMinY {
             UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
-                self.keyboardOffset = (authButtonMaxY - keyboardMinY + (NSObject.self.deviceIsiPad ? 10 : 5))
                 self.masterStackViewCenterYConstraint.constant -= self.keyboardOffset
                 self.setLabelsAlpha(0.0)
                 self.view.layoutIfNeeded()
@@ -714,10 +741,13 @@ extension BJOTPViewController {
             if keyboardLocalHeight >= CGFloat(0) ||
                 authButtonLocalY >= (keyboardLocalY - self.keyboardOffset) {
                 UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
-                    self.masterStackViewCenterYConstraint.constant += self.keyboardOffset
-                    self.keyboardOffset = 0.0
-                    self.setLabelsAlpha(1.0)
-                    self.view.layoutIfNeeded()
+                    if self.didTapToDismissKeyboard == false {
+                        self.masterStackViewCenterYConstraint.constant = self.originalMasterStackViewCenterYConstraintConstant
+                        self.keyboardOffset = 0.0
+                        self.setLabelsAlpha(1.0)
+                        self.view.layoutIfNeeded()
+                    }
+                    self.didTapToDismissKeyboard = false
                 }, completion: nil)
             }
         }
@@ -740,12 +770,15 @@ extension BJOTPViewController {
 
 extension BJOTPViewController {
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.didTapToDismissKeyboard = true
         UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
-            self.masterStackViewCenterYConstraint.constant += self.keyboardOffset
+            self.masterStackViewCenterYConstraint.constant = self.originalMasterStackViewCenterYConstraintConstant
             self.keyboardOffset = 0.0
             self.setLabelsAlpha(1.0)
             self.view.layoutIfNeeded()
-        }, completion: nil)
+        }) { (completed) in
+            self.didTapToDismissKeyboard = false
+        }
         self.view.endEditing(true)
     }
 }
