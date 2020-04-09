@@ -57,6 +57,11 @@ import UIKit
  */
 open class BJOTPViewController: UIViewController {
     
+    private var isAutoFillingFromSMS = false
+    private var autoFillBuffer: [String] = []
+    private var didTapToDismissKeyboard = false
+    private var timeIntervalBetweenAutofilledCharactersFromSMS: Date?
+    
     private var headingString: String
     private let numberOfOtpCharacters: Int
     private var allTextFields: [BJOTPTextField] = []
@@ -76,6 +81,7 @@ open class BJOTPViewController: UIViewController {
     
     private var authenticateButton: BJOTPAuthenticateButton!
     private var masterStackViewCenterYConstraint: NSLayoutConstraint!
+    private var originalMasterStackViewCenterYConstraintConstant: CGFloat!
     
     /**
      * The delegate object that is responsible for performing the actual authentication/verification process (with server via api call or whatever)
@@ -165,7 +171,7 @@ open class BJOTPViewController: UIViewController {
     
     @objc public init(withHeading heading: String = "One Time Password",
                       withNumberOfCharacters numberOfOtpCharacters: Int,
-                      delegate: BJOTPViewControllerDelegate) {
+                      delegate: BJOTPViewControllerDelegate? = nil) {
         self.delegate = delegate
         self.headingString = heading
         self.numberOfOtpCharacters = numberOfOtpCharacters
@@ -178,20 +184,24 @@ open class BJOTPViewController: UIViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        self.configureKeyboardNotifications()
         self.constructUI()
+        self.configureKeyboardNotifications()
     }
     
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        ///This fixes an issue where when used in macOS apps, the user cannot paste any text on to any text field at the very beginning. Can be pasted once a textfield has received any text though. But anyway a text has to be inserted in the beginning to avoid the issue.
+        for tf in allTextFields { tf.insertText("") }
     }
     
     @objc func authenticateButtonTapped(_ sender: UIButton) {
         var otpString = ""
+        
         let numberOfEmptyTextFields: Int = allTextFields.reduce(0, { emptyTextsCount, textField in
             otpString += textField.text!
-            return(textField.text ?? "") == "" ? emptyTextsCount + 1 : emptyTextsCount
+            return (textField.text ?? "") == "" ? emptyTextsCount + 1 : emptyTextsCount
         })
+        
         if numberOfEmptyTextFields > 0 { return }
         self.view.endEditing(true)
         self.delegate?.authenticate(otpString, from: self)
@@ -209,16 +219,17 @@ open class BJOTPViewController: UIViewController {
     }
     
     open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
         coordinator.animateAlongsideTransition(in: self.view, animation: { (coord) in
             let titleLabelHeight = (self.headingTitleLabel?.bounds.height ?? 0) / (NSObject.deviceIsInLandscape ? 1 : 2)
             let value = (titleLabelHeight - (self.headingTitleLabel == nil ? (-(self.navBarHeight + NSObject.statusBarHeight) / 2) : 25))
-            self.masterStackViewCenterYConstraint = self.masterStackView.change(yOffset: value - self.keyboardOffset)
+            self.masterStackViewCenterYConstraint.constant = self.originalMasterStackViewCenterYConstraintConstant - value + self.keyboardOffset
             self.primaryHeaderLabel?.sizeToFit()
             self.secondaryHeaderLabel?.sizeToFit()
             self.footerLabel?.sizeToFit()
             self.view.layoutIfNeeded()
+            if !NSObject.deviceIsInLandscape { self.setLabelsAlpha(1.0) }
         }, completion: nil)
+        super.viewWillTransition(to: size, with: coordinator)
     }
     
 }
@@ -235,13 +246,33 @@ extension BJOTPViewController: UITextFieldDelegate {
     
     public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         
+        ///We don't need any string that is more than the maximum allowed chatacters
         if string.count > self.numberOfOtpCharacters { return false }
         
-        if ((string == "" || string == " ") && range.length == 0) { return false }
+        ///We don't need any white space either
+        if ((string == "" || string == " ") && range.length == 0) {
+            
+            ///But, auto-fill from SMS - before sending in the characters one by one - will
+            ///send two empty strings ("") in succession very fast, unlike the speed a human may enter passcode.
+
+            ///We need to check for it and have to decide/assume that what we have received is indeed auto-filled code from SMS.
+
+            ///This has to be done since we use a new textfield for each character instead of a single text field with all characters.
+            
+            if string == "" {
+                if let oldInterval = timeIntervalBetweenAutofilledCharactersFromSMS {
+                    if Date().timeIntervalSince(oldInterval) < 0.05 {
+                        self.isAutoFillingFromSMS = true
+                        timeIntervalBetweenAutofilledCharactersFromSMS = nil
+                    }
+                }
+                timeIntervalBetweenAutofilledCharactersFromSMS = Date()
+            }
+            return false
+        }
         
-        ///Checking if the string is the same the content that is present in clipboard.
-        ///Use this condition to determine if text is copy-pasted.
-        if string == UIPasteboard.general.string ?? "<empty-clipboard>" {
+        ///We check if the text is pasted.
+        if string.count > 1 {
             ///If the string is of the same length as the number of otp characters, then we proceed to
             ///fill all the text fields with the characters
             if string.count == numberOfOtpCharacters {
@@ -249,9 +280,8 @@ extension BJOTPViewController: UITextFieldDelegate {
                     allTextFields[idx].text = String(element)
                 }
                 textField.resignFirstResponder()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    self.delegate?.authenticate(string, from: self)
-                }
+                self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
+                self.delegate?.authenticate(string, from: self)
                 ///If the replacing string is of 1 character length, then we just allow it to be replaced
                 ///and set the responder to be the next text field
             } else if string.count == 1 {
@@ -259,6 +289,37 @@ extension BJOTPViewController: UITextFieldDelegate {
                 textField.text = string
             }
         } else {
+            
+            if isAutoFillingFromSMS {
+                
+                autoFillBuffer.append(string)
+                                
+                ///`checkOtpFromMessagesCount` specifically checks if the entered string is less than the maximum allowed characters.
+                ///Since we are debouncing it, `checkOtpFromMessagesCount` will get called only once.
+                ///And we don't allow any characters that are less than the allowed ones.
+                
+                NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(BJOTPViewController.checkOtpFromMessagesCount), object: nil)
+                self.perform(#selector(BJOTPViewController.checkOtpFromMessagesCount), with: nil, afterDelay: 0.1)
+
+                ///We check if the auto-fill from SMS has finished entering all the characters.
+                ///In this case, we need only up to the maximum number of otp characters set by the developer.
+                ///At a later stage, this might be controlled by a flag which will strictly allow only equal number of characters set by the `numberOfOtpCharacters` property.
+                
+                if autoFillBuffer.count == numberOfOtpCharacters {
+                    var finalOTP = ""
+                    for (idx, element) in autoFillBuffer.enumerated() {
+                        let otpChar = String(element)
+                        finalOTP += otpChar
+                        allTextFields[idx].text = otpChar
+                    }
+                    self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
+                    self.delegate?.authenticate(finalOTP, from: self)
+                    isAutoFillingFromSMS = false
+                    autoFillBuffer.removeAll()
+                }
+                return false
+            }
+            
             if range.length == 0 {
                 textField.text = string
                 setNextResponder(textFieldsIndexes[textField as! BJOTPTextField], direction: .right)
@@ -297,6 +358,7 @@ extension BJOTPViewController: UITextFieldDelegate {
     
     private func resignFirstResponder(textField: BJOTPTextField?) {
         textField?.resignFirstResponder()
+        self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
         var otpString = ""
         let numberOfEmptyTextFields: Int = allTextFields.reduce(0, { emptyTextsCount, textField in
             otpString += textField.text!
@@ -307,6 +369,19 @@ extension BJOTPViewController: UITextFieldDelegate {
             delegate.authenticate(otpString, from: self)
         } else {
             fatalError("Delegate is nil in BJTOPViewController.")
+        }
+    }
+    
+    /**
+     * This method detects if the auto-filled code from SMS is less than that of the allowed number of characters.
+     *
+     * This checking needs to be done to come to a conclusion on when to populate the code (stored in `autoFillBuffer`) in text fields from SMS. We don't need to populate any characters that are less than what is allowed max..
+     *
+     */
+    @objc private func checkOtpFromMessagesCount() {
+        if autoFillBuffer.count < numberOfOtpCharacters {
+            isAutoFillingFromSMS = false
+            autoFillBuffer.removeAll()
         }
     }
     
@@ -377,6 +452,7 @@ extension BJOTPViewController {
         self.masterStackView.superview?.constraints.forEach { (constraint) in
             if constraint.identifier?.contains("BJConstraintCenterY - \(self.masterStackView.pointerString)") ?? false {
                 self.masterStackViewCenterYConstraint = constraint
+                self.originalMasterStackViewCenterYConstraintConstant = constraint.constant
             }
         }
     }
@@ -390,6 +466,10 @@ extension BJOTPViewController {
     @discardableResult fileprivate func otpTextField() -> BJOTPTextField {
         
         let textField = BJOTPTextField()
+        
+        if #available(iOS 12.0, *) {
+            textField.textContentType = .oneTimeCode
+        }
         
         textField.tarmic = false
         textField.delegate = self
@@ -597,10 +677,31 @@ extension BJOTPViewController {
     }
     
     @objc func keyboardWillShow(_ notification: Notification) {
+        
+        var keyboardFrameBeginKey = ""
+        var keyboardFrameEndKey = ""
+        
+        #if swift(>=5.0)
+        keyboardFrameBeginKey = UIResponder.keyboardFrameBeginUserInfoKey
+        keyboardFrameEndKey = UIResponder.keyboardFrameEndUserInfoKey
+        #elseif swift(<5.0)
+        keyboardFrameBeginKey = UIKeyboardFrameBeginUserInfoKey
+        keyboardFrameEndKey = UIKeyboardFrameEndUserInfoKey
+        #endif
+        
+        let beginFrame = (notification.userInfo?[keyboardFrameBeginKey] as! NSValue).cgRectValue
+        let endFrame = (notification.userInfo?[keyboardFrameEndKey] as! NSValue).cgRectValue
+
+        ///Since `keyboardWillShow` method gets called spuriously, we handle it only when the start and end frames differ.
+        ///We don't proceed further if there is no change in the keyboard's frame.
+        guard !beginFrame.equalTo(endFrame) else {
+            return
+        }
+        
         /**
-         * Need this delay for the UI to finish being laid out
-         * to check if the keyboard is obscuring the button or not initially.
-         */
+        * Need this delay for the UI to finish being laid out
+        * to check if the keyboard is obscuring the button or not initially.
+        */
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             self.offsetForKeyboardPosition(notification as NSNotification)
         }
@@ -612,7 +713,7 @@ extension BJOTPViewController {
         }
     }
     
-    fileprivate func offsetForKeyboardPosition(_ notification: NSNotification) {
+    @objc fileprivate func offsetForKeyboardPosition(_ notification: NSNotification) {
         
         var keyboardFrameEndKey = ""
         
@@ -626,13 +727,13 @@ extension BJOTPViewController {
         let window = UIApplication.shared.windows.first
         let userInfo = (notification as NSNotification).userInfo!
         let keyboardFrame = (userInfo[keyboardFrameEndKey] as! NSValue).cgRectValue
-        let authButtonLocalY = self.masterStackView.convert(self.authenticateButton.frame, to: window).maxY
-        let keyboardLocalY = keyboardFrame.origin.y
+        let authButtonMaxY = self.masterStackView.convert(self.authenticateButton.frame, to: window).maxY
+        let keyboardMinY = keyboardFrame.origin.y
         
-        ///Means the keyboard overlaps the auth button
-        if authButtonLocalY > keyboardLocalY {
+        self.keyboardOffset = (authButtonMaxY - keyboardMinY + (NSObject.self.deviceIsiPad ? 10 : 5))
+        ///Means the keyboard overlaps the authenticate button
+        if authButtonMaxY > keyboardMinY {
             UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
-                self.keyboardOffset = (authButtonLocalY - keyboardLocalY + (NSObject.self.deviceIsiPad ? 10 : 5))
                 self.masterStackViewCenterYConstraint.constant -= self.keyboardOffset
                 self.setLabelsAlpha(0.0)
                 self.view.layoutIfNeeded()
@@ -642,12 +743,12 @@ extension BJOTPViewController {
     
     fileprivate func resetToDefaultOffsetForKeyboardPosition(_ notification: NSNotification) {
         
-        var keyboardFrameBeginKey = ""
+        var keyboardFrameEndKey = ""
         
         #if swift(>=5.0)
-        keyboardFrameBeginKey = UIResponder.keyboardFrameBeginUserInfoKey
+        keyboardFrameEndKey = UIResponder.keyboardFrameEndUserInfoKey
         #elseif swift(<5.0)
-        keyboardFrameBeginKey = UIKeyboardFrameBeginUserInfoKey
+        keyboardFrameEndKey = UIKeyboardFrameEndUserInfoKey
         #endif
         
         if isKeyBoardOn {
@@ -655,7 +756,7 @@ extension BJOTPViewController {
             self.isKeyBoardOn = false
             let window = UIApplication.shared.windows.first
             let userInfo = (notification as NSNotification).userInfo!
-            let keyboardFrame = (userInfo[keyboardFrameBeginKey] as! NSValue).cgRectValue
+            let keyboardFrame = (userInfo[keyboardFrameEndKey] as! NSValue).cgRectValue
             let authButtonLocalY = self.masterStackView.convert(self.authenticateButton.frame, to: window).maxY
             let keyboardLocalY = keyboardFrame.origin.y
             let keyboardLocalHeight = window?.convert(keyboardFrame, to: self.view).height ?? 0
@@ -663,10 +764,13 @@ extension BJOTPViewController {
             if keyboardLocalHeight >= CGFloat(0) ||
                 authButtonLocalY >= (keyboardLocalY - self.keyboardOffset) {
                 UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
-                    self.masterStackViewCenterYConstraint.constant += self.keyboardOffset
-                    self.keyboardOffset = 0.0
-                    self.setLabelsAlpha(1.0)
-                    self.view.layoutIfNeeded()
+                    if self.didTapToDismissKeyboard == false {
+                        self.masterStackViewCenterYConstraint.constant = self.originalMasterStackViewCenterYConstraintConstant
+                        self.keyboardOffset = 0.0
+                        self.setLabelsAlpha(1.0)
+                        self.view.layoutIfNeeded()
+                    }
+                    self.didTapToDismissKeyboard = false
                 }, completion: nil)
             }
         }
@@ -688,13 +792,19 @@ extension BJOTPViewController {
 }
 
 extension BJOTPViewController {
+    /**
+     * Call this method to dismiss the keyboard, and reset the position of the master stack view to its original position, and reset all labels' alpha to 1.0.
+     */
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.didTapToDismissKeyboard = true
         UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
-            self.masterStackViewCenterYConstraint.constant += self.keyboardOffset
+            self.masterStackViewCenterYConstraint.constant = self.originalMasterStackViewCenterYConstraintConstant
             self.keyboardOffset = 0.0
             self.setLabelsAlpha(1.0)
             self.view.layoutIfNeeded()
-        }, completion: nil)
+        }) { (completed) in
+            self.didTapToDismissKeyboard = false
+        }
         self.view.endEditing(true)
     }
 }

@@ -27,6 +27,8 @@ This is intended to be a drag and drop view controller that gets the work done q
 
 ✅ Portrait | Landscape
 
+✅ macOS (Mac Catalyst)
+
 ✅ Light Mode | Dark Mode
 
 
@@ -35,6 +37,8 @@ This is intended to be a drag and drop view controller that gets the work done q
 ✅ Keyboard handling
 
 ✅ Copy-Paste handling
+
+✅ Auto-fill from Messages app
 
 ✅ Apple-inspired Clean User Interface
 
@@ -158,16 +162,13 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
 
 ## Upcoming Features
 
-- Support for Mac Catalyst (Works, but will crash the app when copy-pasting text).
-- Auto-completion of One Time Password into text fields from messages app.
-- Auto-completion of One Time Password from clipboard when copied from authenticator apps like **Google Authenticator** etc.
+- Detection of copied codes from outside the app (For Ex., **Google Authenticator**) and allowing to paste it when the app becomes active.
 
 
 ## Contribution
 
 - Pull Requests are always welcome. Would love to see your inputs.
 
-Thanks for checking out, and thanks for your contribution.
 
 ## License
 
