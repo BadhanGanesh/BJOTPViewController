@@ -29,7 +29,6 @@
 import UIKit
 
 @objc public protocol BJOTPViewControllerDelegate {
-    
     /**
      * Use this delegate method to make API calls, show loading animation in `viewController`, do whatever you want.
      * You can dismiss (if presented) the `viewController` when you're done.
@@ -57,6 +56,14 @@ import UIKit
  */
 open class BJOTPViewController: UIViewController {
     
+    
+    ////////////////////////////////////////////////////////////////
+    //MARK:-
+    //MARK:Private Properties
+    //MARK:-
+    ////////////////////////////////////////////////////////////////
+
+    
     private var isAutoFillingFromSMS = false
     private var autoFillBuffer: [String] = []
     private var didTapToDismissKeyboard = false
@@ -71,7 +78,7 @@ open class BJOTPViewController: UIViewController {
     private var stackView: UIStackView!
     private var isKeyBoardOn: Bool = false
     private var masterStackView: UIStackView!
-    private var keyboardOffset: CGFloat = 0.0
+    private var keyboardOffsetDuringEditing: CGFloat = 0.0
     private var headingTitleLabel: UILabel?
     
     private var footerLabel: UILabel?
@@ -82,6 +89,40 @@ open class BJOTPViewController: UIViewController {
     private var authenticateButton: BJOTPAuthenticateButton!
     private var masterStackViewCenterYConstraint: NSLayoutConstraint!
     private var originalMasterStackViewCenterYConstraintConstant: CGFloat!
+    
+    /**
+     * Setting this property with a valid string will paste it in all the textfields and call the delegte method.
+     *
+     * - Author: Badhan Ganesh
+     */
+    private var stringToPaste: String = "" {
+        didSet {
+            if stringToPaste.count == self.numberOfOtpCharacters {
+                for (idx, element) in stringToPaste.enumerated() {
+                    allTextFields[idx].text = String(element)
+                }
+                self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
+                self.delegate?.authenticate(stringToPaste, from: self)
+            }
+        }
+    }
+    
+    /**
+     * Keeps track of the copied string from clipboard for the purpose of comparing old and new strings to decide on auto-pasting, or promting user to paste it.
+     *
+     * - Author: Badhan Ganesh
+     */
+    private static var clipboardContent: String? = nil
+
+    
+    //
+    ////////////////////////////////////////////////////////////////
+    //MARK:-
+    //MARK: Public Properties
+    //MARK:-
+    ////////////////////////////////////////////////////////////////
+    //
+
     
     /**
      * The delegate object that is responsible for performing the actual authentication/verification process (with server via api call or whatever)
@@ -169,6 +210,42 @@ open class BJOTPViewController: UIViewController {
      */
     @objc public var hideLabelsWhenEditing: Bool = false
     
+    /**
+     * Setting this to `true` will show an alert to the user whenever a compatible text is copied to clipboard asking whether or not to paste the same. Yes or No option will be provided.
+     *
+     * Default is `true`.
+     *
+     * Tapping "Yes" will auto-fill all the textfields with copied text and will call the `authenticate` delegate method.
+     *
+     * Pop-up won't be shown for the same string copied over and over. Clipboard will be checked when the app comes to foreground, and when the view controller's view finished appearing.
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc public var shouldPromptUserToPasteCopiedStringFromClipboard: Bool = true
+    
+    /**
+     * Setting this to `true` will automatically paste compatible text that is present in the clipboard and call the `authenticate` delegate method without asking any questions. This property will take precedence over `shouldPromptUserToPasteCopiedStringFromClipboard` property.
+     *
+     * Default is `false`.
+     *
+     * But be careful when setting this to `true` as this might not be the best user experiece all the time. This does not gives the user the control of what code to paste.
+     *
+     * Some/most users may prefer quick submission and verification of OTP code without any extra clicks or taps. This saves a quite a few milliseconds from them.
+     *
+     * **Note:** OTP code won't be pasted for the same string copied over and over. Clipboard will be checked when the app comes to foreground, and when the view controller's view finished appearing.
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc public var shouldAutomaticallyPasteCopiedStringFromClipboard: Bool = false
+    
+    
+    ////////////////////////////////////////////////////////////////
+    //MARK:-
+    //MARK: Main Implementation
+    //MARK:-
+    ////////////////////////////////////////////////////////////////
+
+    
     @objc public init(withHeading heading: String = "One Time Password",
                       withNumberOfCharacters numberOfOtpCharacters: Int,
                       delegate: BJOTPViewControllerDelegate? = nil) {
@@ -185,13 +262,14 @@ open class BJOTPViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         self.constructUI()
-        self.configureKeyboardNotifications()
+        self.configureKeyboardAndOtherNotifications()
     }
     
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         ///This fixes an issue where when used in macOS apps, the user cannot paste any text on to any text field at the very beginning. Can be pasted once a textfield has received any text though. But anyway a text has to be inserted in the beginning to avoid the issue.
         for tf in allTextFields { tf.insertText("") }
+        self.checkClipboardAndPromptUserToPasteContent()
     }
     
     @objc func authenticateButtonTapped(_ sender: UIButton) {
@@ -220,25 +298,40 @@ open class BJOTPViewController: UIViewController {
     
     open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         coordinator.animateAlongsideTransition(in: self.view, animation: { (coord) in
-            let titleLabelHeight = (self.headingTitleLabel?.bounds.height ?? 0) / (NSObject.deviceIsInLandscape ? 1 : 2)
-            let value = (titleLabelHeight - (self.headingTitleLabel == nil ? (-(self.navBarHeight + NSObject.statusBarHeight) / 2) : 25))
-            self.masterStackViewCenterYConstraint.constant = self.originalMasterStackViewCenterYConstraintConstant - value + self.keyboardOffset
-            self.primaryHeaderLabel?.sizeToFit()
-            self.secondaryHeaderLabel?.sizeToFit()
-            self.footerLabel?.sizeToFit()
-            self.view.layoutIfNeeded()
-            if !NSObject.deviceIsInLandscape { self.setLabelsAlpha(1.0) }
+            self.masterStackViewCenterYConstraint = self.masterStackView.change(yOffset: self.offsetValueDuringRest())
+            self.originalMasterStackViewCenterYConstraintConstant = self.masterStackViewCenterYConstraint.constant
+            self.masterStackView.layoutIfNeeded()
         }, completion: nil)
         super.viewWillTransition(to: size, with: coordinator)
     }
     
+    /**
+     * Call this method to dismiss the keyboard, and reset the position of the master stack view to its original position, and reset all labels' alpha to 1.0.
+     *
+     * - Author: Badhan Ganesh
+     */
+    override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.didTapToDismissKeyboard = true
+        UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
+            self.masterStackViewCenterYConstraint.constant = self.originalMasterStackViewCenterYConstraintConstant
+            self.keyboardOffsetDuringEditing = 0.0
+            self.setLabelsAlpha(1.0)
+            self.view.layoutIfNeeded()
+        }) { (completed) in
+            self.didTapToDismissKeyboard = false
+        }
+        self.view.endEditing(true)
+    }
+
 }
+
 
 ////////////////////////////////////////////////////////////////
 //MARK:-
-//MARK: UITextField Delegate Methods
+//MARK: UITextFields Handling
 //MARK:-
 ////////////////////////////////////////////////////////////////
+
 
 extension BJOTPViewController: UITextFieldDelegate {
     
@@ -294,7 +387,7 @@ extension BJOTPViewController: UITextFieldDelegate {
                 
                 autoFillBuffer.append(string)
                                 
-                ///`checkOtpFromMessagesCount` specifically checks if the entered string is less than the maximum allowed characters.
+                ///`checkOtpFromMessagesCount` below specifically checks if the entered string is less than the maximum allowed characters.
                 ///Since we are debouncing it, `checkOtpFromMessagesCount` will get called only once.
                 ///And we don't allow any characters that are less than the allowed ones.
                 
@@ -333,7 +426,7 @@ extension BJOTPViewController: UITextFieldDelegate {
     
     public func textFieldDidBeginEditing(_ textField: UITextField) {
         textField.roundCorners(amount: 4)
-        textField.setBorder(amount: 3, borderColor: (currentTextFieldColor ?? accentColor).withAlphaComponent(0.4), duration: 0.09)
+        textField.setBorder(amount: 3, borderColor: (currentTextFieldColor ?? accentColor).withAlphaComponent(0.4), duration: 0)
     }
     
     public func textFieldDidEndEditing(_ textField: UITextField) {
@@ -377,6 +470,7 @@ extension BJOTPViewController: UITextFieldDelegate {
      *
      * This checking needs to be done to come to a conclusion on when to populate the code (stored in `autoFillBuffer`) in text fields from SMS. We don't need to populate any characters that are less than what is allowed max..
      *
+     * - Author: Badhan Ganesh
      */
     @objc private func checkOtpFromMessagesCount() {
         if autoFillBuffer.count < numberOfOtpCharacters {
@@ -387,11 +481,13 @@ extension BJOTPViewController: UITextFieldDelegate {
     
 }
 
+
 ////////////////////////////////////////////////////////////////
 //MARK:-
-//MARK: UI Construction Extensions
+//MARK: UI Construction
 //MARK:-
 ////////////////////////////////////////////////////////////////
+
 
 extension BJOTPViewController {
     
@@ -434,12 +530,12 @@ extension BJOTPViewController {
         if self.navigationController == nil {
             self.view.layoutIfNeeded()
             let closeButton = UIButton.init(type: .custom)
-            closeButton.frame = .init(origin: .zero, size: .init(width: self.masterStackView.bounds.width, height: 40))
+            closeButton.frame = .init(origin: .zero, size: .init(width: self.masterStackView.bounds.width, height: 35))
             closeButton.tarmic = false
             closeButton.setTitle("CLOSE", for: .normal)
             closeButton.showsTouchWhenHighlighted = true
             closeButton.setTitleColor(self.authenticateButtonColor ?? self.accentColor, for: .normal)
-            closeButton.titleLabel?.font = UIFont.systemFont(ofSize: 14.5, weight: .bold).normalized()
+            closeButton.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .bold).normalized()
             closeButton.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
             
             self.view.addSubview(closeButton)
@@ -453,6 +549,7 @@ extension BJOTPViewController {
             if constraint.identifier?.contains("BJConstraintCenterY - \(self.masterStackView.pointerString)") ?? false {
                 self.masterStackViewCenterYConstraint = constraint
                 self.originalMasterStackViewCenterYConstraintConstant = constraint.constant
+                return
             }
         }
     }
@@ -604,7 +701,7 @@ extension BJOTPViewController {
         authenticateButton.setTitle(self.authenticateButtonTitle, for: .normal)
         
         let authenticateButtonFontMetric = UIFontMetrics.init(forTextStyle: .headline)
-        let authenticateButtonFont = authenticateButtonFontMetric.scaledFont(for: .boldSystemFont(ofSize: 14.5))
+        let authenticateButtonFont = authenticateButtonFontMetric.scaledFont(for: .boldSystemFont(ofSize: 14))
         
         authenticateButton.titleLabel?.adjustsFontForContentSizeCategory = true
         authenticateButton.titleLabel?.lineBreakMode = .byTruncatingTail
@@ -628,18 +725,13 @@ extension BJOTPViewController {
     }
     
     fileprivate func layoutMasterStackView() {
-        let titleLabelHeight = (self.headingTitleLabel?.intrinsicContentSize.height ?? 0)
-        let value = titleLabelHeight -
-            (self.headingTitleLabel == nil ?
-                (-(self.navBarHeight + NSObject.statusBarHeight) / 2) : 25)
-        
         let masterStackView = UIStackView(arrangedSubviews: [self.headerTextsStackView, self.stackView, self.authenticateButton, self.footerLabel].compactMap { view in view } )
         masterStackView.axis = .vertical
         masterStackView.spacing = 10
         masterStackView.alignment = .center
         masterStackView.distribution = .fill
         self.view.addSubview(masterStackView)
-        masterStackView.pinTo(.middle, yOffset: value)
+        masterStackView.pinTo(.middle, yOffset: self.offsetValueDuringRest())
         self.masterStackView = masterStackView
     }
     
@@ -656,23 +748,31 @@ extension BJOTPViewController {
         self.footerLabel?.widthAnchor.constraint(equalToConstant: self.stackView.bounds.width).isActive = true
     }
     
+    fileprivate func offsetValueDuringRest() -> CGFloat {
+        return (self.navigationController != nil) ? (self.navBarHeight + NSObject.statusBarHeight) / 2 : NSObject.statusBarHeightOffset
+    }
+    
 }
+
 
 ////////////////////////////////////////////////////////////////
 //MARK:-
-//MARK: Keyboard Handling Extensions
+//MARK: Keyboard Handling
 //MARK:-
 ////////////////////////////////////////////////////////////////
+
 
 extension BJOTPViewController {
     
-    fileprivate func configureKeyboardNotifications() {
+    fileprivate func configureKeyboardAndOtherNotifications() {
         #if swift(>=5.0)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appWillEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
         #elseif swift(<5.0)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appWillEnterForeground), name: NSNotification.Name.UIApplicationWillEnterForeground, object: nil)
         #endif
     }
     
@@ -713,6 +813,10 @@ extension BJOTPViewController {
         }
     }
     
+    @objc func appWillEnterForeground(_ notification: Notification) {
+        checkClipboardAndPromptUserToPasteContent()
+    }
+    
     @objc fileprivate func offsetForKeyboardPosition(_ notification: NSNotification) {
         
         var keyboardFrameEndKey = ""
@@ -730,11 +834,11 @@ extension BJOTPViewController {
         let authButtonMaxY = self.masterStackView.convert(self.authenticateButton.frame, to: window).maxY
         let keyboardMinY = keyboardFrame.origin.y
         
-        self.keyboardOffset = (authButtonMaxY - keyboardMinY + (NSObject.self.deviceIsiPad ? 10 : 5))
+        self.keyboardOffsetDuringEditing = (authButtonMaxY - keyboardMinY + (NSObject.self.deviceIsiPad ? 10 : 5))
         ///Means the keyboard overlaps the authenticate button
         if authButtonMaxY > keyboardMinY {
             UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
-                self.masterStackViewCenterYConstraint.constant -= self.keyboardOffset
+                self.masterStackViewCenterYConstraint.constant -= self.keyboardOffsetDuringEditing
                 self.setLabelsAlpha(0.0)
                 self.view.layoutIfNeeded()
             }, completion: nil)
@@ -762,11 +866,11 @@ extension BJOTPViewController {
             let keyboardLocalHeight = window?.convert(keyboardFrame, to: self.view).height ?? 0
             
             if keyboardLocalHeight >= CGFloat(0) ||
-                authButtonLocalY >= (keyboardLocalY - self.keyboardOffset) {
+                authButtonLocalY >= (keyboardLocalY - self.keyboardOffsetDuringEditing) {
                 UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
                     if self.didTapToDismissKeyboard == false {
                         self.masterStackViewCenterYConstraint.constant = self.originalMasterStackViewCenterYConstraintConstant
-                        self.keyboardOffset = 0.0
+                        self.keyboardOffsetDuringEditing = 0.0
                         self.setLabelsAlpha(1.0)
                         self.view.layoutIfNeeded()
                     }
@@ -791,37 +895,38 @@ extension BJOTPViewController {
     
 }
 
-extension BJOTPViewController {
-    /**
-     * Call this method to dismiss the keyboard, and reset the position of the master stack view to its original position, and reset all labels' alpha to 1.0.
-     */
-    override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        self.didTapToDismissKeyboard = true
-        UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
-            self.masterStackViewCenterYConstraint.constant = self.originalMasterStackViewCenterYConstraintConstant
-            self.keyboardOffset = 0.0
-            self.setLabelsAlpha(1.0)
-            self.view.layoutIfNeeded()
-        }) { (completed) in
-            self.didTapToDismissKeyboard = false
-        }
-        self.view.endEditing(true)
-    }
-}
 
-extension UILabel {
-    open override func updateConstraints() {
-        if self.tag == 2245 {
-            for constraint in constraints {
-                if constraint.identifier == "Width" {
-                    constraint.constant = UIScreen.main.bounds.size.width * ( NSObject.deviceIsiPad ? 60 : 80) / 100
+////////////////////////////////////////////////////////////////
+//MARK:-
+//MARK: Helper Methods
+//MARK:-
+////////////////////////////////////////////////////////////////
+
+extension BJOTPViewController {
+    
+    /**
+     * Responsible for checking if a new text (with same no. of allowed characters) has been copied to clipboard or not, and then prompting (via alert) the user to paste it, or auto-paste it based on the below attributes:
+     *
+     * * `shouldPromptUserToPasteCopiedStringFromClipboard`
+     * * `shouldAutomaticallyPasteCopiedStringFromClipboard`
+     *
+     * - Author: Badhan Ganesh
+     */
+    fileprivate func checkClipboardAndPromptUserToPasteContent() {
+        if UIPasteboard.general.hasStrings {
+            let clipboardString = UIPasteboard.general.string
+            if clipboardString?.count == numberOfOtpCharacters && clipboardString != Self.clipboardContent {
+                Self.clipboardContent = clipboardString
+                guard shouldAutomaticallyPasteCopiedStringFromClipboard == false else {
+                    self.stringToPaste = clipboardString!
+                    return
+                }
+                if shouldPromptUserToPasteCopiedStringFromClipboard {
+                    self.showSimpleAlertWithTitle("Do you want to paste the copied text and proceed?", firstButtonTitle: "No", secondButtonTitle: "Yes") { (secondButtonAction) in
+                        self.stringToPaste = clipboardString!
+                    }
                 }
             }
         }
-        super.updateConstraints()
     }
-}
-
-extension NSObject {
-    func doNothing() {}
 }

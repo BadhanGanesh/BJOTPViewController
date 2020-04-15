@@ -352,4 +352,45 @@ extension NSObject {
         }
     }
     
+    static var statusBarHeightOffset: CGFloat {
+        get {
+            return NSObject.deviceIsInLandscape ? 10 : 0
+        }
+    }
+    
+    static var newWidth: CGFloat {
+        get {
+            if deviceIsiPad { return 400 }
+            return deviceIsInLandscape ?
+                UIScreen.main.bounds.height / 1.2 :
+                UIScreen.main.bounds.width / 1.2
+        }
+    }
+    
+    static var newHeight: CGFloat {
+        get {
+            if deviceIsiPad { return 70 }
+            return deviceIsInLandscape ?
+                UIScreen.main.bounds.width / 11.0 :
+                UIScreen.main.bounds.height / 11.0
+        }
+    }
+    
+    func doNothing() {}
+    
 }
+
+extension UILabel {
+    open override func updateConstraints() {
+        if self.tag == 2245 {
+            for constraint in constraints {
+                if constraint.identifier == "Width" {
+                    constraint.constant = UIScreen.main.bounds.size.width * ( NSObject.deviceIsiPad ? 60 : 80) / 100
+                }
+            }
+        }
+        super.updateConstraints()
+    }
+}
+
+
