@@ -44,6 +44,8 @@ This is intended to be a drag and drop view controller that gets the work done q
 
 ✅ Custom primay / secondary / footer labels
 
+✅ Detection of copied text / code from outside the app
+
 
 ## Installation
 
@@ -158,11 +160,35 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  */
 @objc public var hideLabelsWhenEditing: Bool = false
 
+/**
+ * Setting this to `true` will show an alert to the user whenever a compatible text is copied to clipboard asking whether or not to paste the same. Yes or No option will be provided.
+ *
+ * Default is `true`.
+ *
+ * Tapping "Yes" will auto-fill all the textfields with copied text and will call the `authenticate` delegate method.
+ *
+ * Pop-up won't be shown for the same string copied over and over. Clipboard will be checked when the app comes to foreground, and when the view controller's view finished appearing.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var shouldPromptUserToPasteCopiedStringFromClipboard: Bool = true
+
+/**
+ * Setting this to `true` will automatically paste compatible text that is present in the clipboard and call the `authenticate` delegate method without asking any questions. This property will take precedence over `shouldPromptUserToPasteCopiedStringFromClipboard` property.
+ *
+ * Default is `false`.
+ *
+ * But be careful when setting this to `true` as this might not be the best user experiece all the time. This does not gives the user the control of what code to paste.
+ *
+ * Some/most users may prefer quick submission and verification of OTP code without any extra clicks or taps. This saves a quite a few milliseconds from them.
+ *
+ * **Note:** OTP code won't be pasted for the same string copied over and over. Clipboard will be checked when the app comes to foreground, and when the view controller's view finished appearing.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var shouldAutomaticallyPasteCopiedStringFromClipboard: Bool = false
+
 ```
-
-## Upcoming Features
-
-- Detection of copied codes from outside the app (For Ex., **Google Authenticator**) and allowing to paste it when the app becomes active.
 
 
 ## Contribution

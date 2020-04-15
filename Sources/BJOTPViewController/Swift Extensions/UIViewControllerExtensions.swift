@@ -39,11 +39,24 @@ extension UIViewController {
      *
      * - Author: Badhan Ganesh
      */
-    @objc func showSimpleAlertWithTitle(_ title:String? = nil, message:String? = nil) {
+    @objc func showSimpleAlertWithTitle(_ title: String? = nil, message: String? = nil,
+                                        firstButtonTitle: String? = nil,
+                                        secondButtonTitle: String? = nil,
+                                        firstButtonAction: ((UIAlertAction) -> Void)? = nil,
+                                        secondButtonAction: ((UIAlertAction) -> Void)? = nil) {
+        
         let alert = UIAlertController.init(title: title, message: message, preferredStyle: .alert)
-        alert.view.tintColor = .blue
-        let okAction = UIAlertAction.init(title: "OK", style: .default, handler: nil)
-        alert.addAction(okAction)
+        
+        if let ft = firstButtonTitle {
+            let firstAction = UIAlertAction.init(title: ft, style: .default, handler: firstButtonAction)
+            alert.addAction(firstAction)
+        }
+        
+        if let st = secondButtonTitle {
+            let secondAction = UIAlertAction.init(title: st, style: .default, handler: secondButtonAction)
+            alert.addAction(secondAction)
+        }
+        
         self.present(alert, animated: true, completion: nil)
     }
     

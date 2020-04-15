@@ -60,23 +60,3 @@ final class BJOTPStackViewContainerView: UIView {
     }
     
 }
-
-extension NSObject {
-    static var newWidth: CGFloat {
-        get {
-            if deviceIsiPad { return 400 }
-            return deviceIsInLandscape ?
-                UIScreen.main.bounds.height / 1.2 :
-                UIScreen.main.bounds.width / 1.2
-        }
-    }
-    
-    static var newHeight: CGFloat {
-        get {
-            if deviceIsiPad { return 70 }
-            return deviceIsInLandscape ?
-                UIScreen.main.bounds.width / 11.0 :
-                UIScreen.main.bounds.height / 11.0
-        }
-    }
-}
