@@ -32,4 +32,8 @@ final class BJOTPTextField: UITextField {
     override func caretRect(for position: UITextPosition) -> CGRect {
         return .init(origin: .init(x: self.bounds.midX, y: self.bounds.origin.y), size: .init(width: 0.1, height: 0.1))
     }
+    
+    override func closestPosition(to point: CGPoint) -> UITextPosition? {
+        return self.endOfDocument
+    }
 }
