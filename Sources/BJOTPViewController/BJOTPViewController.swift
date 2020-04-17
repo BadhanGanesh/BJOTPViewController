@@ -267,19 +267,15 @@ open class BJOTPViewController: UIViewController {
     
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        ///This fixes an issue where when used in macOS apps, the user cannot paste any text on to any text field at the very beginning. Can be pasted once a textfield has received any text though. But anyway a text has to be inserted in the beginning to avoid the issue.
-        for tf in allTextFields { tf.insertText("") }
         self.checkClipboardAndPromptUserToPasteContent()
     }
     
     @objc func authenticateButtonTapped(_ sender: UIButton) {
         var otpString = ""
-        
         let numberOfEmptyTextFields: Int = allTextFields.reduce(0, { emptyTextsCount, textField in
             otpString += textField.text!
             return (textField.text ?? "") == "" ? emptyTextsCount + 1 : emptyTextsCount
         })
-        
         if numberOfEmptyTextFields > 0 { return }
         self.view.endEditing(true)
         self.delegate?.authenticate(otpString, from: self)
@@ -322,7 +318,12 @@ open class BJOTPViewController: UIViewController {
         }
         self.view.endEditing(true)
     }
-
+    
+    deinit {
+        self.removeListeners()
+        self.allTextFields.removeAll()
+        self.textFieldsIndexes.removeAll()
+    }
 }
 
 
@@ -347,9 +348,9 @@ extension BJOTPViewController: UITextFieldDelegate {
             
             ///But, auto-fill from SMS - before sending in the characters one by one - will
             ///send two empty strings ("") in succession very fast, unlike the speed a human may enter passcode.
-
+            ///
             ///We need to check for it and have to decide/assume that what we have received is indeed auto-filled code from SMS.
-
+            ///
             ///This has to be done since we use a new textfield for each character instead of a single text field with all characters.
             
             if string == "" {
@@ -413,6 +414,8 @@ extension BJOTPViewController: UITextFieldDelegate {
                 return false
             }
             
+            ///Normal text entry
+            
             if range.length == 0 {
                 textField.text = string
                 setNextResponder(textFieldsIndexes[textField as! BJOTPTextField], direction: .right)
@@ -433,10 +436,8 @@ extension BJOTPViewController: UITextFieldDelegate {
         textField.setBorder(amount: 1.8, borderColor: UIColor.lightGray.withAlphaComponent(0.3), duration: 0.09)
     }
     
-    private func setNextResponder(_ index:Int?, direction:Direction) {
-        
+    private func setNextResponder(_ index: Int?, direction: Direction) {
         guard let index = index else { return }
-        
         if direction == .left {
             index == 0 ?
                 (self.resignFirstResponder(textField: allTextFields.first)) :
@@ -446,7 +447,6 @@ extension BJOTPViewController: UITextFieldDelegate {
                 (self.resignFirstResponder(textField: allTextFields.last)) :
                 (_ = allTextFields[(index + 1)].becomeFirstResponder())
         }
-        
     }
     
     private func resignFirstResponder(textField: BJOTPTextField?) {
@@ -524,6 +524,8 @@ extension BJOTPViewController {
             view.backgroundColor = .white
         }
         
+        /// 8. This fixes an issue where when used in macOS apps, the user cannot paste any text on to any text field at the very beginning. Can be pasted once a textfield has received any text though. But anyway a text has to be inserted in the beginning to avoid the issue. Not sure why this happens, weird.
+        for tf in allTextFields { tf.insertText("") }
     }
     
     fileprivate func layoutBottomCloseButton() {
@@ -799,9 +801,9 @@ extension BJOTPViewController {
         }
         
         /**
-        * Need this delay for the UI to finish being laid out
-        * to check if the keyboard is obscuring the button or not initially.
-        */
+         * Need this delay for the UI to finish being laid out
+         * to check if the keyboard is obscuring the button or not initially.
+         */
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             self.offsetForKeyboardPosition(notification as NSNotification)
         }
@@ -856,7 +858,6 @@ extension BJOTPViewController {
         #endif
         
         if isKeyBoardOn {
-            
             self.isKeyBoardOn = false
             let window = UIApplication.shared.windows.first
             let userInfo = (notification as NSNotification).userInfo!
@@ -928,5 +929,17 @@ extension BJOTPViewController {
                 }
             }
         }
+    }
+    
+    private func removeListeners() {
+        #if swift(>=5.0)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIApplication.willEnterForegroundNotification, object: nil)
+        #elseif swift(<5.0)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIApplicationWillEnterForeground, object: nil)
+        #endif
     }
 }
