@@ -685,14 +685,12 @@ extension BJOTPViewController {
     }
     
     fileprivate func layoutStackViewForHeaderLabels() {
-        if let _ = self.primaryHeaderLabel, let _ = self.secondaryHeaderLabel {
-            let headerTextsStackView = UIStackView(arrangedSubviews: [self.primaryHeaderLabel, self.secondaryHeaderLabel].compactMap { view in view } )
-            headerTextsStackView.axis = .vertical
-            headerTextsStackView.spacing = -2
-            headerTextsStackView.alignment = .center
-            headerTextsStackView.distribution = .fill
-            self.headerTextsStackView = headerTextsStackView
-        }
+        let headerTextsStackView = UIStackView(arrangedSubviews: [self.primaryHeaderLabel, self.secondaryHeaderLabel].compactMap { view in view } )
+        headerTextsStackView.axis = .vertical
+        headerTextsStackView.spacing = -2
+        headerTextsStackView.alignment = .center
+        headerTextsStackView.distribution = .fill
+        self.headerTextsStackView = headerTextsStackView
     }
     
     fileprivate func layoutAuthenticateButtonWith(sibling view: UIView) {
