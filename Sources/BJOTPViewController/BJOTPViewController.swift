@@ -898,10 +898,7 @@ extension BJOTPViewController {
 extension BJOTPViewController: BJMenuActionDelegate {
     public func canPerform(_ action: Selector) -> Bool {
         guard let copiedString = UIPasteboard.general.string else { return false }
-        if copiedString.count != numberOfOtpCharacters {
-            return false
-        }
-        return true
+        return copiedString.count != numberOfOtpCharacters ? false : true
     }
 }
 
