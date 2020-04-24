@@ -575,6 +575,7 @@ extension BJOTPViewController {
         textField.textColor = .black
         textField.borderStyle = .none
         textField.textAlignment = .center
+        textField.menuActionDelegate = self
         textField.roundCorners(amount: 4)
         textField.backgroundColor = .white
         textField.isSecureTextEntry = true
@@ -892,6 +893,13 @@ extension BJOTPViewController {
         self.footerLabel?.alpha = finalAlpha
     }
     
+}
+
+extension BJOTPViewController: BJMenuActionDelegate {
+    public func canPerform(_ action: Selector) -> Bool {
+        guard let copiedString = UIPasteboard.general.string else { return false }
+        return copiedString.count != numberOfOtpCharacters ? false : true
+    }
 }
 
 
