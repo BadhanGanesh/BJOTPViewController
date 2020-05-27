@@ -42,6 +42,7 @@ extension UIViewController {
     @objc func showSimpleAlertWithTitle(_ title: String? = nil, message: String? = nil,
                                         firstButtonTitle: String? = nil,
                                         secondButtonTitle: String? = nil,
+                                        isSecondButtonDestructive: Bool = false,
                                         firstButtonAction: ((UIAlertAction) -> Void)? = nil,
                                         secondButtonAction: ((UIAlertAction) -> Void)? = nil) {
         
@@ -53,7 +54,7 @@ extension UIViewController {
         }
         
         if let st = secondButtonTitle {
-            let secondAction = UIAlertAction.init(title: st, style: .default, handler: secondButtonAction)
+            let secondAction = UIAlertAction.init(title: st, style: isSecondButtonDestructive ? .destructive : .default, handler: secondButtonAction)
             alert.addAction(secondAction)
         }
         

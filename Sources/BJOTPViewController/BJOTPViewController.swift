@@ -59,7 +59,7 @@ open class BJOTPViewController: UIViewController {
     
     ////////////////////////////////////////////////////////////////
     //MARK:-
-    //MARK:Private Properties
+    //MARK: Private Properties
     //MARK:-
     ////////////////////////////////////////////////////////////////
 
@@ -102,7 +102,7 @@ open class BJOTPViewController: UIViewController {
                     allTextFields[idx].text = String(element)
                 }
                 self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
-                self.delegate?.authenticate(stringToPaste, from: self)
+                self.informDelegate(stringToPaste, from: self)
             }
         }
     }
@@ -238,6 +238,15 @@ open class BJOTPViewController: UIViewController {
      */
     @objc public var shouldAutomaticallyPasteCopiedStringFromClipboard: Bool = false
     
+    /**
+     * Uses haptics for touches, interactions, successes and errors within the OTP view controller.
+     *
+     * Default is `true`.
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc public var hapticsEnabled: Bool = true
+    
     
     ////////////////////////////////////////////////////////////////
     //MARK:-
@@ -261,6 +270,10 @@ open class BJOTPViewController: UIViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
+        if #available(iOS 13.0, *) {
+            self.isModalInPresentation = true
+            self.presentationController?.delegate = self
+        }
         self.constructUI()
         self.configureKeyboardAndOtherNotifications()
     }
@@ -276,14 +289,17 @@ open class BJOTPViewController: UIViewController {
             otpString += textField.text!
             return (textField.text ?? "") == "" ? emptyTextsCount + 1 : emptyTextsCount
         })
-        if numberOfEmptyTextFields > 0 { return }
+        if numberOfEmptyTextFields > 0 {
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            return
+        }
         self.view.endEditing(true)
-        self.delegate?.authenticate(otpString, from: self)
+        self.informDelegate(otpString, from: self)
     }
     
     @objc private func closeButtonTapped(_ sender: UIButton) {
         if self.navigationController == nil {
-            self.dismiss(animated: true, completion: nil)
+            self.askUserConsentBeforeDismissingModal()
         }
     }
     
@@ -375,7 +391,7 @@ extension BJOTPViewController: UITextFieldDelegate {
                 }
                 textField.resignFirstResponder()
                 self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
-                self.delegate?.authenticate(string, from: self)
+                self.informDelegate(string, from: self)
                 ///If the replacing string is of 1 character length, then we just allow it to be replaced
                 ///and set the responder to be the next text field
             } else if string.count == 1 {
@@ -407,7 +423,7 @@ extension BJOTPViewController: UITextFieldDelegate {
                         allTextFields[idx].text = otpChar
                     }
                     self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
-                    self.delegate?.authenticate(finalOTP, from: self)
+                    self.informDelegate(finalOTP, from: self)
                     isAutoFillingFromSMS = false
                     autoFillBuffer.removeAll()
                 }
@@ -458,8 +474,8 @@ extension BJOTPViewController: UITextFieldDelegate {
             return (textField.text ?? "").isEmpty ? emptyTextsCount + 1 : emptyTextsCount
         })
         if numberOfEmptyTextFields > 0 { return }
-        if let delegate = delegate {
-            delegate.authenticate(otpString, from: self)
+        if let _ = delegate {
+            self.informDelegate(otpString, from: self)
         } else {
             fatalError("Delegate is nil in BJTOPViewController.")
         }
@@ -589,7 +605,7 @@ extension BJOTPViewController {
     
     fileprivate func layoutHeadingLabel() {
         
-        if (self.navigationController?.isNavigationBarHidden ?? true) {
+        if self.navigationController?.isNavigationBarHidden ?? true {
             
             let headingTitle = UILabel()
             headingTitle.tarmic = false
@@ -668,13 +684,14 @@ extension BJOTPViewController {
             
             let captionFontMetric = UIFontMetrics.init(forTextStyle: .caption2)
             let footerLabelFont = captionFontMetric.scaledFont(for: .systemFont(ofSize: 9, weight: .regular))
-            
             footerLabel.font = footerLabelFont
+            
             if #available(iOS 13.0, *) {
                 footerLabel.textColor = UIColor.secondaryLabel.withAlphaComponent(0.4)
             } else {
                 footerLabel.textColor = UIColor(red: 0.23529411764705882, green: 0.23529411764705882, blue: 0.2627450980392157, alpha: 0.6).withAlphaComponent(0.4)
             }
+            
             footerLabel.setContentHuggingPriority(.init(1000), for: .vertical)
             footerLabel.setContentCompressionResistancePriority(.init(1000), for: .vertical)
             footerLabel.lineBreakMode = .byTruncatingMiddle
@@ -696,9 +713,10 @@ extension BJOTPViewController {
     
     fileprivate func layoutAuthenticateButtonWith(sibling view: UIView) {
         
-        let authenticateButton = BJOTPAuthenticateButton.init()
+        let authenticateButton = BJOTPAuthenticateButton()
         authenticateButton.tarmic = false
         authenticateButton.roundCorners(amount: 6.0)
+        authenticateButton.useHaptics = self.hapticsEnabled
         authenticateButton.setTitle(self.authenticateButtonTitle, for: .normal)
         
         let authenticateButtonFontMetric = UIFontMetrics.init(forTextStyle: .headline)
@@ -750,7 +768,8 @@ extension BJOTPViewController {
     }
     
     fileprivate func offsetValueDuringRest() -> CGFloat {
-        return (self.navigationController != nil) ? (self.navBarHeight + NSObject.statusBarHeight) / 2 : NSObject.statusBarHeightOffset
+        
+        return (!(self.navigationController?.isNavigationBarHidden ?? true)) ? (self.navBarHeight + NSObject.statusBarHeight) / 2 : NSObject.statusBarHeightOffset
     }
     
 }
@@ -929,11 +948,30 @@ extension BJOTPViewController {
                     return
                 }
                 if shouldPromptUserToPasteCopiedStringFromClipboard {
-                    self.showSimpleAlertWithTitle("Do you want to paste the copied text and proceed?", firstButtonTitle: "No", secondButtonTitle: "Yes") { (secondButtonAction) in
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                    self.showSimpleAlertWithTitle("Do you want to paste the text from clipboard and proceed?", firstButtonTitle: "No", secondButtonTitle: "Yes") { (secondButtonAction) in
                         self.stringToPaste = clipboardString!
                     }
                 }
             }
+        }
+    }
+    
+    /**
+     * Use this method to inform the delegate that a valid OTP has been entered.
+     *
+     * This method can be useful if you want to prepend or appennd anything in success scenarios.
+     *
+     * - Author: Badhan Ganesh
+     */
+    private func informDelegate(_ otp: String, from viewController: BJOTPViewController) {
+        self.delegate?.authenticate(otp, from: viewController)
+    }
+    
+    private func askUserConsentBeforeDismissingModal() {
+        if hapticsEnabled { UINotificationFeedbackGenerator().notificationOccurred(.error) }
+        self.showSimpleAlertWithTitle("Are you sure you want to close without authenticating?", message: nil, firstButtonTitle: "No", secondButtonTitle: "Yes", isSecondButtonDestructive: true, firstButtonAction: nil) { (action) in
+            self.dismiss(animated: true, completion: nil)
         }
     }
     
@@ -947,5 +985,11 @@ extension BJOTPViewController {
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardWillHide, object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIApplicationWillEnterForeground, object: nil)
         #endif
+    }
+}
+
+extension BJOTPViewController: UIAdaptivePresentationControllerDelegate {
+    public func presentationControllerDidAttemptToDismiss(_ presentationController: UIPresentationController) {
+        self.askUserConsentBeforeDismissingModal()
     }
 }
