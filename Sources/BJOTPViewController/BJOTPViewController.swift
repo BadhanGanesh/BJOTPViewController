@@ -270,12 +270,8 @@ open class BJOTPViewController: UIViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        if #available(iOS 13.0, *) {
-            self.isModalInPresentation = true
-            self.presentationController?.delegate = self
-        }
         self.constructUI()
-        self.configureKeyboardAndOtherNotifications()
+        self.initialConfiguration()
     }
     
     public override func viewDidAppear(_ animated: Bool) {
@@ -336,6 +332,7 @@ open class BJOTPViewController: UIViewController {
     }
     
     deinit {
+        print("**********\nBJOTPViewController deinit being called\n**********")
         self.removeListeners()
         self.allTextFields.removeAll()
         self.textFieldsIndexes.removeAll()
@@ -783,6 +780,20 @@ extension BJOTPViewController {
 
 
 extension BJOTPViewController {
+    
+    fileprivate func initialConfiguration() {
+        self.modalConfig()
+        self.configureKeyboardAndOtherNotifications()
+    }
+    
+    fileprivate func modalConfig() {
+        if self.navigationController == nil {
+            if #available(iOS 13.0, *) {
+                self.isModalInPresentation = true
+                self.presentationController?.delegate = self
+            }
+        }
+    }
     
     fileprivate func configureKeyboardAndOtherNotifications() {
         #if swift(>=5.0)
