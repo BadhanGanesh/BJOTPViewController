@@ -286,7 +286,7 @@ open class BJOTPViewController: UIViewController {
             return (textField.text ?? "") == "" ? emptyTextsCount + 1 : emptyTextsCount
         })
         if numberOfEmptyTextFields > 0 {
-            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            if hapticsEnabled { UINotificationFeedbackGenerator().notificationOccurred(.error) }
             return
         }
         self.view.endEditing(true)
@@ -332,10 +332,10 @@ open class BJOTPViewController: UIViewController {
     }
     
     deinit {
-        print("**********\nBJOTPViewController deinit being called\n**********")
         self.removeListeners()
         self.allTextFields.removeAll()
         self.textFieldsIndexes.removeAll()
+        debugPrint("**********\nBJOTPViewController deinit being called\n**********")
     }
 }
 
@@ -959,7 +959,7 @@ extension BJOTPViewController {
                     return
                 }
                 if shouldPromptUserToPasteCopiedStringFromClipboard {
-                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                    if hapticsEnabled { UINotificationFeedbackGenerator().notificationOccurred(.success) }
                     self.showSimpleAlertWithTitle("Do you want to paste the text from clipboard and proceed?", firstButtonTitle: "No", secondButtonTitle: "Yes") { (secondButtonAction) in
                         self.stringToPaste = clipboardString!
                     }
