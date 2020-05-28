@@ -14,8 +14,6 @@
 
 A very simple and neat-looking view controller that lets you type in OTP's quick and easy.
 
-This is intended to be a drag and drop view controller that gets the work done quickly, in and out, that's it. No fancy customizations, no cluttering the screen with tons of UI elements and crazy colors. You'll be good to go with the default settings.
-
 
 ## Supports
 
@@ -23,13 +21,13 @@ This is intended to be a drag and drop view controller that gets the work done q
 
 ✅ Swift 4.0+
 
-✅ iOS | iPadOS
-
 ✅ Portrait | Landscape
 
-✅ macOS (Mac Catalyst)
-
 ✅ Light Mode | Dark Mode
+
+✅ iOS | iPadOS | macOS (Catalyst)
+
+✅ Objective-C (Xcode 11.4 onwards)
 
 
 ## Features
@@ -53,7 +51,7 @@ This is intended to be a drag and drop view controller that gets the work done q
 
 2. Paste the repo URL: https://github.com/BadhanGanesh/BJOTPViewController.git
 
-3. Follow onscreen instructions for choosing the package options and targets you want to add the dependency to, and click **Finish** when you're done. 
+3. Follow onscreen instructions for choosing the package options and targets you want to add the dependency to - but make sure you always consider choosing the latest version for the best experience - and click **Finish** when you're done.
 
 
 ## Screenshots
@@ -188,6 +186,14 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  */
 @objc public var shouldAutomaticallyPasteCopiedStringFromClipboard: Bool = false
 
+/**
+ * Uses haptics for touches, interactions, successes and errors within the OTP view controller.
+ *
+ * Default is `true`.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var hapticsEnabled: Bool = true
 ```
 
 
