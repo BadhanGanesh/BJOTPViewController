@@ -194,6 +194,24 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  * - Author: Badhan Ganesh
  */
 @objc public var hapticsEnabled: Bool = true
+
+/**
+ * Asks whether the footer should behave as a button or just a normal label. Button will pass the action to the delegate method `didTap(footer button: UIButton)`.
+ *
+ * If `true`, the color of the footer will be `.systemBlue`, and gray otherwise. Default is `false`.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var shouldFooterBehaveAsButton: Bool = false
+
+/**
+ * The color of the footer.
+ *
+ * This color will be applied only when `shouldFooterBehaveAsButton` is set to `true`. Default gray color will be used otherwise. Default color is `.systemBlue`.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var footerButtonColor: UIColor?
 ```
 
 

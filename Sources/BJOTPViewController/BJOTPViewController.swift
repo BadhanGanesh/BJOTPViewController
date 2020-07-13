@@ -41,17 +41,87 @@ import UIKit
      * - Author: Badhan Ganesh
      */
     @objc func authenticate(_ otp: String, from viewController: BJOTPViewController)
+    
+    /**
+     * This method will get called whenever the otp view controller is closed, either by popping, dismissing, or tapping the close button.
+     *
+     * Use this to invalidate any timers, do clean-ups, etc..
+     *
+     * - Parameter viewController: The otp view controller.
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc func didClose(_ viewController: BJOTPViewController)
+    
+    /**
+     * This delegate method will get called when the footer button at the bottom is tapped. Use this to resend one time code from the server
+     *
+     * This method will only be called when the `shouldFooterBehaveAsButton` is `true`.
+     *
+     * - Parameter button: The button that's tapped.
+     * - Parameter viewController: The otp view controller. Use this to show loaders, spinners, present any other view controllers on top etc..
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc func didTap(footer button: UIButton, from viewController: BJOTPViewController)
 }
 
 /**
- * A simple and neat-looking view controller that lets you type in OTP's quick and easy.
+ * A simple and neat-looking view controller that lets you type in OTP's quick and easy
  *
  * This is intended to be a drag and drop view controller that gets the work done quickly, in and out, that's it. No fancy customizations, no cluttering the screen with tons of UI elements and crazy colors. You'll be good to go with the default settings.
  *
- * * Supports dark mode.
- * * Supports iOS and iPadOS.
- * * Supports portrait and landscape modes.
+ * * Supports Portrait | Landscape
+ * * Light Mode | Dark Mode
+ * * iOS | iPadOS | macOS (Catalyst)
  *
+ * **Example Usage:**
+ 
+ * ```swift
+ import BJOTPViewController
+ 
+ ---------------------------------------------
+ //PRESENTATION
+ ---------------------------------------------
+ 
+ // Initialise view controller
+ let oneTimePasswordVC = BJOTPViewController.init(withHeading: "Two Factor Authentication",
+                                                  withNumberOfCharacters: 6,
+                                                  delegate: self)
+ // Present it
+ self.present(oneTimePasswordVC, animated: true, completion: nil)
+ 
+ ---------------------------------------------
+ //VISUALS
+ ---------------------------------------------
+ 
+ // Button title. Optional. Default is "AUTHENTICATE".
+ oneTimePasswordVC.authenticateButtonTitle = "VERIFY OTP"
+
+ // Sets the overall accent of the view controller. Optional. Default is system blue.
+ oneTimePasswordVC.accentColor = UIColor.systemRed
+
+ // Currently selected text field color. Optional. This takes precedence over the accent color.
+ oneTimePasswordVC.currentTextFieldColor = UIColor.systemOrange
+
+ // Button color. Optional. This takes precedence over the accent color.
+ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
+ 
+ ---------------------------------------------
+ //DELEGATE
+ ---------------------------------------------
+ 
+ //Conform to BJOTPViewControllerDelegate
+ extension ViewController: BJOTPViewControllerDelegate {
+     func authenticate(_ otp: String, from viewController: BJOTPViewController) {
+         // Make API calls, show loading animation in viewController, do whatever you want.
+         // You can dismiss the viewController when you're done.
+         // This method will get called only after the validation is successful, i.e.,
+         // after the user has filled all the textfields.
+     }
+ }
+ 
+ ```
  * - Author: Badhan Ganesh
  */
 open class BJOTPViewController: UIViewController {
@@ -72,7 +142,7 @@ open class BJOTPViewController: UIViewController {
     private var headingString: String
     private let numberOfOtpCharacters: Int
     private var allTextFields: [BJOTPTextField] = []
-    private var textFieldsIndexes: [BJOTPTextField:Int] = [:]
+    private var textFieldsIndexes: [BJOTPTextField: Int] = [:]
     
     private var closeButton: UIButton?
     private var stackView: UIStackView!
@@ -81,7 +151,7 @@ open class BJOTPViewController: UIViewController {
     private var keyboardOffsetDuringEditing: CGFloat = 0.0
     private var headingTitleLabel: UILabel?
     
-    private var footerLabel: UILabel?
+    private var footerButton: BJOTPAuthenticateButton?
     private var primaryHeaderLabel: UILabel?
     private var secondaryHeaderLabel: UILabel?
     private var headerTextsStackView: UIStackView?
@@ -89,6 +159,8 @@ open class BJOTPViewController: UIViewController {
     private var authenticateButton: BJOTPAuthenticateButton!
     private var masterStackViewCenterYConstraint: NSLayoutConstraint!
     private var originalMasterStackViewCenterYConstraintConstant: CGFloat!
+    
+    private weak var currentTextField: BJOTPTextField? = nil
     
     /**
      * Setting this property with a valid string will paste it in all the textfields and call the delegte method.
@@ -147,14 +219,30 @@ open class BJOTPViewController: UIViewController {
      *
      * - Author: Badhan Ganesh
      */
-    @objc public var accentColor: UIColor = .systemBlue
+    @objc public var accentColor: UIColor = .systemBlue {
+        willSet {
+            self.closeButton?.setTitleColor(self.authenticateButtonColor ?? newValue, for: .normal)
+            if self.authenticateButton != nil {
+                self.authenticateButton.backgroundColor = self.authenticateButtonColor ?? newValue
+            }
+            if let tf = currentTextField {
+                tf.layer.borderColor = currentTextFieldColor?.cgColor ?? newValue.cgColor
+            }
+        }
+    }
     
     /**
      * The currently focused text field color. This color will appear faded (less opacity) to look good instead of a being saturated.
      *
      * - Author: Badhan Ganesh
      */
-    @objc public var currentTextFieldColor: UIColor?
+    @objc public var currentTextFieldColor: UIColor? {
+        willSet {
+            if let tf = currentTextField {
+                tf.setBorder(amount: 3, borderColor: (newValue ?? self.accentColor).withAlphaComponent(0.4), duration: 0)
+            }
+        }
+    }
     
     /**
      * The color of the authenticate button.
@@ -163,7 +251,11 @@ open class BJOTPViewController: UIViewController {
      *
      * - Author: Badhan Ganesh
      */
-    @objc public var authenticateButtonColor: UIColor?
+    @objc public var authenticateButtonColor: UIColor? {
+        willSet {
+            self.authenticateButton.backgroundColor = newValue ?? self.accentColor
+        }
+    }
     
     /**
      * The title of the authenticate button.
@@ -172,7 +264,11 @@ open class BJOTPViewController: UIViewController {
      *
      * - Author: Badhan Ganesh
      */
-    @objc public var authenticateButtonTitle: String = "AUTHENTICATE"
+    @objc public var authenticateButtonTitle: String = "AUTHENTICATE" {
+        willSet {
+            self.authenticateButton.setTitle(newValue, for: .normal)
+        }
+    }
     
     /**
      * The title of the primary header which stays above the OTP textfields.
@@ -181,7 +277,11 @@ open class BJOTPViewController: UIViewController {
      *
      * - Author: Badhan Ganesh
      */
-    @objc public var primaryHeaderTitle: String?
+    @objc public var primaryHeaderTitle: String? {
+        willSet {
+            self.primaryHeaderLabel?.text = newValue
+        }
+    }
     
     /**
      * The title of the secondary header which comes below the primary header.
@@ -190,7 +290,11 @@ open class BJOTPViewController: UIViewController {
      *
      * - Author: Badhan Ganesh
      */
-    @objc public var secondaryHeaderTitle: String?
+    @objc public var secondaryHeaderTitle: String? {
+        willSet {
+            self.secondaryHeaderLabel?.text = newValue
+        }
+    }
     
     /**
      * The title of the footer label which comes below the authenticate button.
@@ -199,7 +303,11 @@ open class BJOTPViewController: UIViewController {
      *
      * - Author: Badhan Ganesh
      */
-    @objc public var footerTitle: String?
+    @objc public var footerTitle: String? {
+        willSet {
+            self.footerButton?.setTitle(newValue, for: .normal)
+        }
+    }
     
     /**
      * Set whether the primary, secondary, and footer labels are to be hidden during editing, i.e., when the keyboard is open.
@@ -247,6 +355,24 @@ open class BJOTPViewController: UIViewController {
      */
     @objc public var hapticsEnabled: Bool = true
     
+    /**
+     * Asks whether the footer should behave as a button or just a normal label. Button will pass the action to the delegate method `didTap(footer button: UIButton)`.
+     *
+     * If `true`, the color of the footer will be `.systemBlue`, and gray otherwise. Default is `false`.
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc public var shouldFooterBehaveAsButton: Bool = false
+    
+    /**
+     * The color of the footer.
+     *
+     * This color will be applied only when `shouldFooterBehaveAsButton` is set to `true`. Default gray color will be used otherwise. Default color is `.systemBlue`.
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc public var footerButtonColor: UIColor?
+    
     
     ////////////////////////////////////////////////////////////////
     //MARK:-
@@ -277,6 +403,26 @@ open class BJOTPViewController: UIViewController {
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.checkClipboardAndPromptUserToPasteContent()
+    }
+    
+    open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+    }
+    
+    open override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+        let isBeingPopped: Bool!
+        
+        #if swift(>=5.0)
+        isBeingPopped = isMovingFromParent
+        #elseif swift(<5.0)
+        isBeingPopped = isMovingFromParentViewController
+        #endif
+        
+        if isBeingDismissed || isBeingPopped {
+            self.delegate?.didClose(self)
+        }
     }
     
     @objc func authenticateButtonTapped(_ sender: UIButton) {
@@ -443,10 +589,12 @@ extension BJOTPViewController: UITextFieldDelegate {
     public func textFieldDidBeginEditing(_ textField: UITextField) {
         textField.roundCorners(amount: 4)
         textField.setBorder(amount: 3, borderColor: (currentTextFieldColor ?? accentColor).withAlphaComponent(0.4), duration: 0)
+        self.currentTextField = textField as? BJOTPTextField
     }
     
     public func textFieldDidEndEditing(_ textField: UITextField) {
         textField.setBorder(amount: 1.8, borderColor: UIColor.lightGray.withAlphaComponent(0.3), duration: 0.09)
+        self.currentTextField = nil
     }
     
     private func setNextResponder(_ index: Int?, direction: Direction) {
@@ -674,28 +822,46 @@ extension BJOTPViewController {
         }
     }
     
+    @objc func footerButtonTapped(_ button: UIButton) {
+        self.delegate?.didTap(footer: button, from: self)
+    }
+    
     fileprivate func layoutFooterLabel() {
         if let _ = footerTitle {
-            let footerLabel = UILabel()
-            footerLabel.adjustsFontForContentSizeCategory = true
+            let footerButton = BJOTPAuthenticateButton()
             
             let captionFontMetric = UIFontMetrics.init(forTextStyle: .caption2)
-            let footerLabelFont = captionFontMetric.scaledFont(for: .systemFont(ofSize: 9, weight: .regular))
-            footerLabel.font = footerLabelFont
+            let footerLabelFont = captionFontMetric.scaledFont(for: .systemFont(ofSize: shouldFooterBehaveAsButton ? 11 : 9, weight: .regular))
+            
+            footerButton.useHaptics = false
+            footerButton.animate = shouldFooterBehaveAsButton
+            footerButton.isUserInteractionEnabled = shouldFooterBehaveAsButton
+            
+            footerButton.titleLabel?.font = footerLabelFont
+            footerButton.titleLabel?.textAlignment = .center
+            footerButton.titleLabel?.adjustsFontForContentSizeCategory = true
+            
+            var labelTitleColor: UIColor!
             
             if #available(iOS 13.0, *) {
-                footerLabel.textColor = UIColor.secondaryLabel.withAlphaComponent(0.4)
+                labelTitleColor = UIColor.secondaryLabel.withAlphaComponent(0.4)
             } else {
-                footerLabel.textColor = UIColor(red: 0.23529411764705882, green: 0.23529411764705882, blue: 0.2627450980392157, alpha: 0.6).withAlphaComponent(0.4)
+                labelTitleColor = UIColor(red: 0.23529411764705882, green: 0.23529411764705882, blue: 0.2627450980392157, alpha: 0.6).withAlphaComponent(0.4)
             }
             
-            footerLabel.setContentHuggingPriority(.init(1000), for: .vertical)
-            footerLabel.setContentCompressionResistancePriority(.init(1000), for: .vertical)
-            footerLabel.lineBreakMode = .byTruncatingMiddle
-            footerLabel.textAlignment = .center
-            footerLabel.numberOfLines = 0
-            footerLabel.text = self.footerTitle
-            self.footerLabel = footerLabel
+            if shouldFooterBehaveAsButton {
+                footerButton.addTarget(self, action: #selector(footerButtonTapped(_:)), for: .touchUpInside)
+            }
+            
+            footerButton.setTitleColor(shouldFooterBehaveAsButton ? (self.footerButtonColor ?? .systemBlue) : labelTitleColor, for: .normal)
+            footerButton.setContentHuggingPriority(.init(1000), for: .vertical)
+            footerButton.setContentCompressionResistancePriority(.init(1000), for: .vertical)
+            footerButton.titleLabel?.lineBreakMode = .byTruncatingMiddle
+            footerButton.titleLabel?.textAlignment = .center
+            footerButton.titleLabel?.numberOfLines = 0
+            footerButton.setTitle(self.footerTitle, for: .normal)
+            
+            self.footerButton = footerButton
         }
     }
     
@@ -741,7 +907,7 @@ extension BJOTPViewController {
     }
     
     fileprivate func layoutMasterStackView() {
-        let masterStackView = UIStackView(arrangedSubviews: [self.headerTextsStackView, self.stackView, self.authenticateButton, self.footerLabel].compactMap { view in view } )
+        let masterStackView = UIStackView(arrangedSubviews: [self.headerTextsStackView, self.stackView, self.authenticateButton, self.footerButton].compactMap { view in view } )
         masterStackView.axis = .vertical
         masterStackView.spacing = 10
         masterStackView.alignment = .center
@@ -761,7 +927,7 @@ extension BJOTPViewController {
         layoutMasterStackView()
         self.stackView.layoutIfNeeded()
         self.authenticateButton.widthAnchor.constraint(equalToConstant: self.stackView.bounds.width).isActive = true
-        self.footerLabel?.widthAnchor.constraint(equalToConstant: self.stackView.bounds.width).isActive = true
+        self.footerButton?.widthAnchor.constraint(equalToConstant: self.stackView.bounds.width).isActive = true
     }
     
     fileprivate func offsetValueDuringRest() -> CGFloat {
@@ -823,7 +989,7 @@ extension BJOTPViewController {
         let beginFrame = (notification.userInfo?[keyboardFrameBeginKey] as! NSValue).cgRectValue
         let endFrame = (notification.userInfo?[keyboardFrameEndKey] as! NSValue).cgRectValue
 
-        ///Since `keyboardWillShow` method gets called spuriously, we handle it only when the start and end frames differ.
+        ///Since `keyboardWillShow` method gets called sporadically, we handle it only when the start and end frames differ.
         ///We don't proceed further if there is no change in the keyboard's frame.
         guard !beginFrame.equalTo(endFrame) else {
             return
@@ -920,7 +1086,7 @@ extension BJOTPViewController {
         self.headingTitleLabel?.alpha = value
         self.primaryHeaderLabel?.alpha = finalAlpha
         self.secondaryHeaderLabel?.alpha = finalAlpha
-        self.footerLabel?.alpha = finalAlpha
+        self.footerButton?.alpha = finalAlpha
     }
     
 }
@@ -982,7 +1148,7 @@ extension BJOTPViewController {
     private func askUserConsentBeforeDismissingModal() {
         if hapticsEnabled { UINotificationFeedbackGenerator().notificationOccurred(.error) }
         self.showSimpleAlertWithTitle("Are you sure you want to close without authenticating?", message: nil, firstButtonTitle: "No", secondButtonTitle: "Yes", isSecondButtonDestructive: true, firstButtonAction: nil) { (action) in
-            self.dismiss(animated: true, completion: nil)
+            self.dismiss(animated: true)
         }
     }
     
