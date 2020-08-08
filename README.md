@@ -76,18 +76,55 @@ let oneTimePasswordVC = BJOTPViewController.init(withHeading: "Two Factor Authen
 self.present(oneTimePasswordVC, animated: true, completion: nil)
 ```
 
-**Delegate**
+**Delegate methods**
 
 ```swift
 //Conform to BJOTPViewControllerDelegate
-extension ViewController: BJOTPViewControllerDelegate {
-    func authenticate(_ otp: String, from viewController: BJOTPViewController) {
-        // Make API calls, show loading animation in viewController, do whatever you want.
-        // You can dismiss the viewController when you're done.
-        // This method will get called only after the validation is successful, i.e.,
-        // after the user has filled all the textfields.
-    }
-}
+
+ func authenticate(_ otp: String, from viewController: BJOTPViewController) {
+ 
+ /**
+  * Use this delegate method to make API calls, show loading animation in `viewController`, do whatever you want.
+  * You can dismiss (if presented) the `viewController` when you're done.
+  *
+  * This method will get called only after the validation is successful, i.e., after the user has filled all the text fields.
+  *
+  * - Parameter otp: The full otp string entered.
+  * - Parameter viewController: The otp view controller.
+  *
+  * - Author: Badhan Ganesh
+  */
+ 
+ }
+
+ func didClose(_ viewController: BJOTPViewController) {
+ 
+ /**
+  * This method will get called whenever the otp view controller is closed, either by popping, dismissing, or tapping the close button.
+  *
+  * Use this to invalidate any timers, do clean-ups, etc..
+  *
+  * - Parameter viewController: The otp view controller.
+  *
+  * - Author: Badhan Ganesh
+  */
+  
+ }
+
+ func didTap(footer button: UIButton, from viewController: BJOTPViewController) {
+ 
+ /**
+  * This delegate method will get called when the footer button at the bottom is tapped. Use this to resend one time code from the server
+  *
+  * This method will only be called when the `shouldFooterBehaveAsButton` is `true`.
+  *
+  * - Parameter button: The button that's tapped.
+  * - Parameter viewController: The otp view controller. Use this to show loaders, spinners, present any other view controllers on top etc..
+  *
+  * - Author: Badhan Ganesh
+  */
+  
+ }
 ```
 
 **Visuals**
@@ -194,6 +231,24 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  * - Author: Badhan Ganesh
  */
 @objc public var hapticsEnabled: Bool = true
+
+/**
+ * Asks whether the footer should behave as a button or just a normal label. Button will pass the action to the delegate method `didTap(footer button: UIButton)`.
+ *
+ * If `true`, the color of the footer will be `.systemBlue`, and gray otherwise. Default is `false`.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var shouldFooterBehaveAsButton: Bool = false
+
+/**
+ * The color of the footer.
+ *
+ * This color will be applied only when `shouldFooterBehaveAsButton` is set to `true`. Default gray color will be used otherwise. Default color is `.systemBlue`.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var footerButtonColor: UIColor?
 ```
 
 

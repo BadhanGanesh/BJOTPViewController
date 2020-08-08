@@ -67,7 +67,7 @@ extension UIViewController {
     
     var navBarHeight: CGFloat {
         get {
-            return (self.navigationController?.navigationBar.bounds.height ?? 0)
+            return (self.navigationController?.navigationBar.bounds.height ?? 40)
         }
     }
     
