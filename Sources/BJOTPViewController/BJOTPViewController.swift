@@ -180,7 +180,7 @@ open class BJOTPViewController: UIViewController {
     }
     
     /**
-     * Keeps track of the copied string from clipboard for the purpose of comparing old and new strings to decide on auto-pasting, or promting user to paste it.
+     * Keeps track of the copied string from clipboard for the purpose of comparing old and new strings to decide on auto-pasting, or prompting user to paste it.
      *
      * - Author: Badhan Ganesh
      */
@@ -232,7 +232,7 @@ open class BJOTPViewController: UIViewController {
     }
     
     /**
-     * The currently focused text field color. This color will appear faded (less opacity) to look good instead of a being saturated.
+     * The currently focused text field color. This color will appear faded (less opacity) to look good instead of being saturated.
      *
      * - Author: Badhan Ganesh
      */
@@ -336,7 +336,7 @@ open class BJOTPViewController: UIViewController {
      *
      * Default is `false`.
      *
-     * But be careful when setting this to `true` as this might not be the best user experiece all the time. This does not gives the user the control of what code to paste.
+     * But be careful when setting this to `true` as this might not be the best user experiece all the time. This does not give the user the control of what code to paste.
      *
      * Some/most users may prefer quick submission and verification of OTP code without any extra clicks or taps. This saves a quite a few milliseconds from them.
      *
@@ -658,27 +658,25 @@ extension BJOTPViewController {
         /// Be careful and try not to change the order of the stuffs. Each UI element is laid out one by one,
         /// piece by piece to work correctly.
         
-        /// 1. Layout Heading title lablel in case of navigation bar
+        /// 1. Layout Heading title lablel in case of navigation bar.
         title = headingString
         
-        /// 2. Setup textfields
+        /// 2. Setup textfields.
         configureOTPTextFields()
         
-        /// 3. Layout Heading title lablel in case of no navigation bar
+        /// 3. Layout Heading title lablel in case of no navigation bar.
         layoutHeadingLabel()
         
-        /// 4. Layout all stackviews and its contents
+        /// 4. Layout all stackviews and its contents.
         layoutAllStackViewsWith(allTextFields)
         
-        /// 5. Make first text field the first responder or not based on the `openKeyboadDuringStartup` attribute
+        /// 5. Make first text field the first responder or not based on the `openKeyboadDuringStartup` attribute.
         self.openKeyboadDuringStartup ? (_ = allTextFields.first?.becomeFirstResponder()) : doNothing()
         
-        /// 6. Save the centerY constraint of stack container view for offsetting its position for keyboard position
-        saveMasterStackViewYConstraint()
-        
-        /// 7. Layout close button at the bottom
+        /// 6. Layout close button at the bottom.
         layoutBottomCloseButton()
         
+        /// 7. Set background color.
         if #available(iOS 13.0, *) {
             view.backgroundColor = .otpVcBackgroundColor
         } else {
@@ -687,16 +685,21 @@ extension BJOTPViewController {
         
         /// 8. This fixes an issue where when used in macOS apps, the user cannot paste any text on to any text field at the very beginning. Can be pasted once a textfield has received any text though. But anyway a text has to be inserted in the beginning to avoid the issue. Not sure why this happens, weird.
         for tf in allTextFields { tf.insertText("") }
+        
+        /// 9. Offset and save the Top constraint of master stack view.
+        saveMasterStackViewYConstraint()
+
     }
     
     fileprivate func layoutBottomCloseButton() {
         if self.navigationController == nil {
             self.view.layoutIfNeeded()
-            let closeButton = UIButton.init(type: .custom)
+            let closeButton = BJOTPAuthenticateButton()
             closeButton.frame = .init(origin: .zero, size: .init(width: self.masterStackView.bounds.width, height: 35))
             closeButton.tarmic = false
+            closeButton.useHaptics = false
             closeButton.setTitle("CLOSE", for: .normal)
-            closeButton.showsTouchWhenHighlighted = true
+            closeButton.showsTouchWhenHighlighted = false
             closeButton.setTitleColor(self.authenticateButtonColor ?? self.accentColor, for: .normal)
             closeButton.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .bold).normalized()
             closeButton.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
@@ -708,13 +711,8 @@ extension BJOTPViewController {
     }
     
     fileprivate func saveMasterStackViewYConstraint() {
-        self.masterStackView.superview?.constraints.forEach { (constraint) in
-            if constraint.identifier?.contains("BJConstraintCenterY - \(self.masterStackView.pointerString)") ?? false {
-                self.masterStackViewCenterYConstraint = constraint
-                self.originalMasterStackViewCenterYConstraintConstant = constraint.constant
-                return
-            }
-        }
+        self.masterStackViewCenterYConstraint = self.masterStackView.change(yOffset: offsetValueDuringRest())
+        self.originalMasterStackViewCenterYConstraintConstant = self.masterStackViewCenterYConstraint.constant
     }
     
     fileprivate func configureOTPTextFields() {
@@ -913,8 +911,8 @@ extension BJOTPViewController {
         masterStackView.alignment = .center
         masterStackView.distribution = .fill
         self.view.addSubview(masterStackView)
-        masterStackView.pinTo(.middle, yOffset: self.offsetValueDuringRest())
         self.masterStackView = masterStackView
+        masterStackView.pinTo(.middle)
     }
     
     fileprivate func layoutAllStackViewsWith(_ subviews: [UIView]) {
@@ -932,7 +930,23 @@ extension BJOTPViewController {
     
     fileprivate func offsetValueDuringRest() -> CGFloat {
         
-        return (!(self.navigationController?.isNavigationBarHidden ?? true)) ? (self.navBarHeight + NSObject.statusBarHeight) / 2 : NSObject.statusBarHeightOffset
+        var bottomInset: CGFloat = 0
+        var statusBarHeight: CGFloat = 0
+        let headingLabelTopOffset: CGFloat = 25
+        
+        #if targetEnvironment(macCatalyst)
+        #else
+        bottomInset = UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 0.0
+        statusBarHeight = UIApplication.shared.statusBarFrame.size.height
+        #endif
+        
+        if !(self.navigationController?.isNavigationBarHidden ?? true) {
+            return (self.navBarHeight + statusBarHeight - bottomInset) / 2
+        } else {
+            return bottomInset == 0 ?
+                ((self.headingTitleLabel?.intrinsicContentSize.height ?? 0 + headingLabelTopOffset) / 2) :
+                (bottomInset / 2)
+        }
     }
     
 }

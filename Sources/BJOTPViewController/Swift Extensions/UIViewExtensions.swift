@@ -346,18 +346,6 @@ extension NSObject {
         }
     }
     
-    static var statusBarHeight: CGFloat {
-        get {
-            return NSObject.deviceIsInLandscape ? 0 : 20
-        }
-    }
-    
-    static var statusBarHeightOffset: CGFloat {
-        get {
-            return NSObject.deviceIsInLandscape ? 10 : 0
-        }
-    }
-    
     static var newWidth: CGFloat {
         get {
             if deviceIsiPad { return 400 }
