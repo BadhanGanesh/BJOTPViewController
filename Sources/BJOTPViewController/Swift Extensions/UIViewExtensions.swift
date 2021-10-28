@@ -3,43 +3,22 @@
 //  swiftextensions
 //  Created by Badhan Ganesh on 10/10/18.
 //
-
-// This code is distributed under the terms and conditions of the MIT license.
-
 // Copyright © 2018 Badhan Ganesh
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
 
 
 import UIKit
 
 @objc enum UIViewPinPosition:Int {
     case topLeft = 0,
-    topMiddle,
-    topRight,
-    middleRight,
-    bottomRight,
-    bottomMiddle,
-    bottomLeft,
-    middleLeft,
-    middle,
-    middleByHuggingAllSides
+         topMiddle,
+         topRight,
+         middleRight,
+         bottomRight,
+         bottomMiddle,
+         bottomLeft,
+         middleLeft,
+         middle,
+         middleByHuggingAllSides
 }
 
 extension UIView {
@@ -163,36 +142,36 @@ extension UIView {
         ////////////////////////////////////////
         
         switch position {
-        case .topLeft:
-            superview.addConstraints([leadingConstraint, topConstraint])
-            break
-        case .topMiddle:
-            superview.addConstraints([centerXConstraint, topConstraint])
-            break
-        case .topRight:
-            superview.addConstraints([trailingConstraint, topConstraint])
-            break
-        case .middleLeft:
-            superview.addConstraints([centerYConstraint, leadingConstraint])
-            break
-        case .bottomLeft:
-            superview.addConstraints([bottomConstraint, leadingConstraint])
-            break
-        case .bottomMiddle:
-            superview.addConstraints([bottomConstraint, centerXConstraint])
-            break
-        case .bottomRight:
-            superview.addConstraints([bottomConstraint, trailingConstraint])
-            break
-        case .middleRight:
-            superview.addConstraints([centerYConstraint, trailingConstraint])
-            break
-        case .middle:
-            superview.addConstraints([centerYConstraint, centerXConstraint])
-            break
-        case .middleByHuggingAllSides:
-            superview.addConstraints([topConstraint, bottomConstraint, leadingConstraint, trailingConstraint])
-            break
+            case .topLeft:
+                superview.addConstraints([leadingConstraint, topConstraint])
+                break
+            case .topMiddle:
+                superview.addConstraints([centerXConstraint, topConstraint])
+                break
+            case .topRight:
+                superview.addConstraints([trailingConstraint, topConstraint])
+                break
+            case .middleLeft:
+                superview.addConstraints([centerYConstraint, leadingConstraint])
+                break
+            case .bottomLeft:
+                superview.addConstraints([bottomConstraint, leadingConstraint])
+                break
+            case .bottomMiddle:
+                superview.addConstraints([bottomConstraint, centerXConstraint])
+                break
+            case .bottomRight:
+                superview.addConstraints([bottomConstraint, trailingConstraint])
+                break
+            case .middleRight:
+                superview.addConstraints([centerYConstraint, trailingConstraint])
+                break
+            case .middle:
+                superview.addConstraints([centerYConstraint, centerXConstraint])
+                break
+            case .middleByHuggingAllSides:
+                superview.addConstraints([topConstraint, bottomConstraint, leadingConstraint, trailingConstraint])
+                break
         }
         
         CATransaction.flush()
@@ -208,6 +187,22 @@ extension UIView {
                     constraintToAdd.identifier = "BJConstraintCenterY - \(self.pointerString)"
                     constraintToAdd.isActive = true
                     constraintToAdd.constant += y
+                    return constraintToAdd
+                }
+            }
+        }
+        return nil
+    }
+    
+    func change(xOffset x: CGFloat = 0.0) -> NSLayoutConstraint? {
+        if let superview = superview {
+            for constraint in superview.constraints {
+                if constraint.identifier == "BJConstraintCenterX - \(self.pointerString)" {
+                    superview.removeConstraint(constraint)
+                    let constraintToAdd = self.centerXAnchor.constraint(equalTo: superview.centerXAnchor)
+                    constraintToAdd.identifier = "BJConstraintCenterX - \(self.pointerString)"
+                    constraintToAdd.isActive = true
+                    constraintToAdd.constant += x
                     return constraintToAdd
                 }
             }
@@ -286,9 +281,8 @@ extension UIView {
      */
     @objc func getText() -> String? {
         return self.responds(to: #selector(getter: UILabel.text)) ?
-            self.perform(#selector(getter: UILabel.text))?.takeUnretainedValue() as? String : nil
+        self.perform(#selector(getter: UILabel.text))?.takeUnretainedValue() as? String : nil
     }
-    
     
     /**
      * It is the good old, and long f(d)ucking variable name (`translatesAutoresizingMaskIntoConstraints`).
@@ -331,7 +325,7 @@ extension NSObject {
      */
     static var deviceIsInLandscape: Bool {
         get {
-            return (UIScreen.main.bounds.width > UIScreen.main.bounds.height)
+            return UIDevice.current.orientation == .landscapeLeft || UIDevice.current.orientation == .landscapeRight
         }
     }
     
@@ -346,21 +340,68 @@ extension NSObject {
         }
     }
     
+    /**
+     * Tells if the device is running in Mac Catalyst mode.
+     *
+     * - Author: Badhan Ganesh
+     */
+    static var deviceIsMacCatalyst: Bool {
+        get {
+            var isMac = false
+            
+            if #available(iOS 14.0, *) {
+                if UIDevice.current.userInterfaceIdiom == .mac {
+                    isMac = true
+                }
+            } else {
+                #if targetEnvironment(macCatalyst)
+                    isMac = true
+                #endif
+            }
+            
+            return isMac
+        }
+    }
+    
     static var newWidth: CGFloat {
         get {
-            if deviceIsiPad { return 400 }
-            return deviceIsInLandscape ?
+            var width = 400.0
+            
+            if deviceIsiPad { return width }
+            
+            if deviceIsMacCatalyst {
+                width = 400.0
+            } else {
+                width = deviceIsInLandscape ?
                 UIScreen.main.bounds.height / 1.2 :
                 UIScreen.main.bounds.width / 1.2
+            }
+            
+            return width
         }
     }
     
     static var newHeight: CGFloat {
         get {
-            if deviceIsiPad { return 70 }
-            return deviceIsInLandscape ?
+            var height = 70.0
+            
+            if deviceIsiPad { return height }
+            
+            if deviceIsMacCatalyst {
+                height = 70.0
+            } else {
+                height = deviceIsInLandscape ?
                 UIScreen.main.bounds.width / 11.0 :
                 UIScreen.main.bounds.height / 11.0
+            }
+            
+            return height
+        }
+    }
+    
+    static var deviceIsMacOrIpad: Bool {
+        get {
+            return NSObject.deviceIsiPad || NSObject.deviceIsMacCatalyst
         }
     }
     
@@ -373,7 +414,7 @@ extension UILabel {
         if self.tag == 2245 {
             for constraint in constraints {
                 if constraint.identifier == "Width" {
-                    constraint.constant = UIScreen.main.bounds.size.width * ( NSObject.deviceIsiPad ? 60 : 80) / 100
+                    constraint.constant = UIScreen.main.bounds.size.width * ( NSObject.deviceIsiPad || NSObject.deviceIsMacCatalyst ? 60 : 80) / 100
                 }
             }
         }

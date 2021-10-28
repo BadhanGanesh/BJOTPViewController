@@ -28,7 +28,7 @@
 
 import UIKit
 
-@objc public protocol BJMenuActionDelegate {
+@objc protocol BJMenuActionDelegate {
     @objc func canPerform(_ action: Selector) -> Bool
 }
 

@@ -12,7 +12,7 @@
 [![GitHub License](https://img.shields.io/twitter/follow/badhanganesh?style=social)](https://twitter.com/intent/follow?screen_name=badhanganesh)
 
 
-A very simple and neat-looking view controller that lets you type in OTP's quick and easy.
+A very simple and neat-looking view controller that lets you type in OTPs quick and easy.
 
 
 ## Supports
