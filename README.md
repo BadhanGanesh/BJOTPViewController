@@ -1,6 +1,6 @@
 # BJOTPViewController
 
-![BJOTPViewController Banner](banner.png)
+![BJOTPViewController Banner](.banner.png)
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/BadhanGanesh/BJOTPViewController)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/BadhanGanesh/BJOTPViewController)
@@ -56,9 +56,9 @@ A very simple and neat-looking view controller that lets you type in OTPs quick 
 
 ## Screenshots
 
-![App Screens 1](app_screens_1.png)
+![App Screens 1](.app_screens_1.png)
 -----
-![App Screens 2](app_screens_2.png)
+![App Screens 2](.app_screens_2.png)
 
 
 ## Usage
