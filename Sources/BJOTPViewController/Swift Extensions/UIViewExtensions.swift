@@ -325,7 +325,8 @@ extension NSObject {
      */
     static var deviceIsInLandscape: Bool {
         get {
-            return UIDevice.current.orientation == .landscapeLeft || UIDevice.current.orientation == .landscapeRight
+            return UIDevice.current.orientation.isLandscape ||
+            UIScreen.main.bounds.size.width > UIScreen.main.bounds.size.height
         }
     }
     
@@ -373,8 +374,8 @@ extension NSObject {
                 width = 400.0
             } else {
                 width = deviceIsInLandscape ?
-                UIScreen.main.bounds.height / 1.2 :
-                UIScreen.main.bounds.width / 1.2
+                UIScreen.main.bounds.height / 1.3 :
+                UIScreen.main.bounds.width / 1.3
             }
             
             return width

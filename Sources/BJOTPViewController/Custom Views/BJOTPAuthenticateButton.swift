@@ -15,7 +15,7 @@ final class BJOTPAuthenticateButton: UIButton {
     
     init() {
         super.init(frame: .zero)
-        self.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold).normalized()
+        self.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
     }
     
     required init?(coder: NSCoder) {

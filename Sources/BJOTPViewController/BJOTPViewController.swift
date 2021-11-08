@@ -197,6 +197,7 @@ open class BJOTPViewController: UIViewController {
     private var authenticateButton: BJOTPAuthenticateButton!
     private var masterStackViewCenterYConstraint: NSLayoutConstraint!
     private var originalMasterStackViewCenterYConstraintConstant: CGFloat!
+    private var headingTitleLabelTopConstraint: NSLayoutConstraint?
     
     private weak var currentTextField: BJOTPTextField? = nil
     
@@ -313,7 +314,7 @@ open class BJOTPViewController: UIViewController {
     /**
      * The title of the primary header which stays above the OTP textfields.
      *
-     * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`). Changing this value after presenting or pushing `BJOTPViewController` won't have an effect; the label won't be constructed.
+     * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`).
      *
      * - Author: Badhan Ganesh
      */
@@ -326,7 +327,7 @@ open class BJOTPViewController: UIViewController {
     /**
      * The title of the secondary header which comes below the primary header.
      *
-     * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`). Changing this value after presenting or pushing `BJOTPViewController` won't have an effect; the label won't be constructed.
+     * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`).
      *
      * - Author: Badhan Ganesh
      */
@@ -339,7 +340,7 @@ open class BJOTPViewController: UIViewController {
     /**
      * The title of the footer label which comes below the authenticate button.
      *
-     * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`). Changing this value after presenting or pushing `BJOTPViewController` won't have an effect; the label won't be constructed.
+     * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`).
      *
      * - Author: Badhan Ganesh
      */
@@ -350,7 +351,7 @@ open class BJOTPViewController: UIViewController {
     }
     
     /**
-     * Set whether the primary, secondary, and footer labels are to be hidden during editing, i.e., when the keyboard is open.
+     * Set whether the primary, secondary labels are to be hidden during editing, i.e., when the keyboard is open.
      *
      * Default is `false`
      *
@@ -426,13 +427,22 @@ open class BJOTPViewController: UIViewController {
         }
     }
     
+    //
     ////////////////////////////////////////////////////////////////
     //MARK:-
     //MARK: Main Implementation
     //MARK:-
     ////////////////////////////////////////////////////////////////
+    //
 
-    
+    /**
+     * The init method to use to construct `BJOTPViewController`.
+     *
+     * - Parameter heading: The main heading title that will be displayed at the very top in case of a modal view controller, navigation bar title in case of navigation controller.
+     * - Parameter delegate: The delegate object that is responsible for handling events sent by `BJOTPViewController`,
+     * for example button tap event.
+     * - Parameter numberOfOtpCharacters: The number of characters the view controller accepts. Generally 6 chars is the rule.
+     */
     @objc public init(withHeading heading: String = "One Time Password",
                       withNumberOfCharacters numberOfOtpCharacters: Int,
                       delegate: BJOTPViewControllerDelegate? = nil) {
@@ -455,6 +465,7 @@ open class BJOTPViewController: UIViewController {
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.checkClipboardAndPromptUserToPasteContent()
+        self.openKeyboadDuringStartup ? _ = self.allTextFields.first?.becomeFirstResponder() : doNothing()
     }
     
     open override func viewWillDisappear(_ animated: Bool) {
@@ -499,25 +510,36 @@ open class BJOTPViewController: UIViewController {
     
     open override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        self.headingTitleLabel?.numberOfLines = NSObject.deviceIsInLandscape ? 1 : 2
+        self.headingTitleLabel?.numberOfLines = NSObject.deviceIsInLandscape ? 1 : self.brandImage == nil ? 2 : 1
     }
     
     open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         coordinator.animateAlongsideTransition(in: self.view, animation: { (coord) in
+            
+            /// Adjusting the centering of the main stack view that holds all the elements
             self.masterStackViewCenterYConstraint = self.masterStackView.change(yOffset: self.offsetValueDuringRest())
             self.originalMasterStackViewCenterYConstraintConstant = self.masterStackViewCenterYConstraint.constant
-            
             self.masterStackView.layoutIfNeeded()
             
-//            if NSObject.deviceIsInLandscape {
-//                self.brandImageView?.pinTo(.middleLeft, shouldRespectSafeArea: true, xOffset: 70)
-//                self.brandImageView?.layoutIfNeeded()
-//            } else {
-//                self.brandImageView?.pinTo(.topMiddle, shouldRespectSafeArea: true, yOffset: 25)
-//                self.brandImageView?.layoutIfNeeded()
-//            }
+            /// Adjusting width and height of the brand image view
+            let imageWidth = NSObject.deviceIsMacOrIpad ? 150 : NSObject.deviceIsInLandscape ? self.view.frame.size.height / 8 : self.view.frame.size.width / 2.5
+            self.brandImageView?.removeConstraints(self.brandImageView?.constraints ?? [])
+            self.brandImageView?.widthAnchor.constraint(equalToConstant: imageWidth).isActive = true
+            self.brandImageView?.heightAnchor.constraint(equalToConstant: imageWidth).isActive = true
+            self.brandImageView?.setNeedsUpdateConstraints()
             
+            /// Adjusting top heading title label
+            if #available(iOS 11.0, *) {
+                let topInset = UIApplication.shared.keyWindow?.safeAreaInsets.top
+                let constraintConstant: CGFloat = (topInset ?? 0) <= 20.0 ?
+                (!NSObject.deviceIsiPad && NSObject.deviceIsInLandscape ? 5 : 15) : 18
+                self.headingTitleLabelTopConstraint?.constant = constraintConstant
+            } else {
+                self.headingTitleLabelTopConstraint?.constant = 12
+            }
+            self.headingTitleLabel?.setNeedsUpdateConstraints()
         }, completion: nil)
+        
         super.viewWillTransition(to: size, with: coordinator)
     }
     
@@ -533,6 +555,7 @@ open class BJOTPViewController: UIViewController {
             self.keyboardOffsetDuringEditing = 0.0
             self.setLabelsAlpha(1.0)
             self.view.layoutIfNeeded()
+            self.view.setNeedsUpdateConstraints()
         }) { (completed) in
             self.didTapToDismissKeyboard = false
         }
@@ -577,14 +600,19 @@ extension BJOTPViewController: UITextFieldDelegate {
             ///This has to be done since we use a new textfield for each character instead of a single text field with all characters.
             
             if string == "" {
-                if let oldInterval = timeIntervalBetweenAutofilledCharactersFromSMS {
-                    if Date().timeIntervalSince(oldInterval) < 0.05 {
-                        self.autoFillingFromSMS = true
-                        timeIntervalBetweenAutofilledCharactersFromSMS = nil
+                if NSObject.deviceIsMacCatalyst {
+                    self.autoFillingFromSMS = true
+                } else {
+                    if let oldInterval = timeIntervalBetweenAutofilledCharactersFromSMS {
+                        if Date().timeIntervalSince(oldInterval) < 0.05 {
+                            self.autoFillingFromSMS = true
+                            timeIntervalBetweenAutofilledCharactersFromSMS = nil
+                        }
                     }
+                    timeIntervalBetweenAutofilledCharactersFromSMS = Date()
                 }
-                timeIntervalBetweenAutofilledCharactersFromSMS = Date()
             }
+            
             return false
         }
         
@@ -643,8 +671,9 @@ extension BJOTPViewController: UITextFieldDelegate {
                 textField.text = string
                 setNextResponder(textFieldsIndexes[textField as! BJOTPTextField], direction: .right)
             } else if range.length == 1 {
-                setNextResponder(textFieldsIndexes[textField as! BJOTPTextField], direction: string.isEmpty ? .left : .right)
+                if string == " " { return false }
                 textField.text = string.isEmpty ? "" : string
+                setNextResponder(textFieldsIndexes[textField as! BJOTPTextField], direction: string.isEmpty ? .left : .right)
             }
         }
         return false
@@ -737,9 +766,6 @@ extension BJOTPViewController {
         /// 4. Layout all stackviews and its contents.
         layoutAllStackViews(with: allTextFields)
         
-        /// 5. Make first text field the first responder or not based on the `openKeyboadDuringStartup` attribute.
-        self.openKeyboadDuringStartup ? (_ = allTextFields.first?.becomeFirstResponder()) : doNothing()
-        
         /// 6. Layout close button at the bottom.
         layoutBottomCloseButton()
         
@@ -768,7 +794,7 @@ extension BJOTPViewController {
             closeButton.setTitle("CLOSE", for: .normal)
             closeButton.showsTouchWhenHighlighted = false
             closeButton.setTitleColor(self.authenticateButtonColor ?? self.accentColor, for: .normal)
-            closeButton.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .bold).normalized()
+            closeButton.titleLabel?.font = UIFont.systemFont(ofSize: NSObject.deviceIsMacOrIpad ? 14.5 : 12, weight: .bold)
             closeButton.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
             
             self.view.addSubview(closeButton)
@@ -786,8 +812,10 @@ extension BJOTPViewController {
         guard let image = self.brandImage else { return }
         
         let brandImageView = UIImageView.init(image: image)
+        brandImageView.contentMode = .scaleAspectFit
+        brandImageView.roundCorners(amount: 6)
 
-        let imageWidth = NSObject.deviceIsMacOrIpad ? 150 : NSObject.deviceIsInLandscape ?  self.view.frame.size.height / 2.5 :self.view.frame.size.width / 2.5
+        let imageWidth = NSObject.deviceIsMacOrIpad ? 150 : NSObject.deviceIsInLandscape ? self.view.frame.size.height / 8 : self.view.frame.size.width / 2.5
         brandImageView.widthAnchor.constraint(equalToConstant: imageWidth).isActive = true
         brandImageView.heightAnchor.constraint(equalToConstant: imageWidth).isActive = true
         
@@ -813,7 +841,6 @@ extension BJOTPViewController {
         textField.textColor = .black
         textField.borderStyle = .none
         textField.textAlignment = .center
-        textField.menuActionDelegate = self
         textField.roundCorners(amount: 4)
         textField.backgroundColor = .white
         textField.isSecureTextEntry = true
@@ -836,14 +863,23 @@ extension BJOTPViewController {
             headingTitle.textAlignment = .center
             headingTitle.text = self.headingString
             headingTitle.adjustsFontSizeToFitWidth = true
-            headingTitle.font = UIFont.systemFont(ofSize: 32, weight: .heavy).normalized()
+            
+            let headingFontMetric = UIFontMetrics.init(forTextStyle: .largeTitle)
+            let headingTitleFont = headingFontMetric.scaledFont(for: .systemFont(ofSize: NSObject.deviceIsMacOrIpad ? 23 : 28, weight: .bold))
+            headingTitle.font = headingTitleFont
             
             self.view.addSubview(headingTitle)
             
             if #available(iOS 11.0, *) {
-                headingTitle.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 25).isActive = true
+                let topInset = UIApplication.shared.keyWindow?.safeAreaInsets.top
+                let constraintConstant: CGFloat = (topInset ?? 0) <= 20.0 ?
+                (!NSObject.deviceIsiPad && NSObject.deviceIsInLandscape ? 5 : 15) : 18
+                
+                self.headingTitleLabelTopConstraint = headingTitle.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: constraintConstant)
+                self.headingTitleLabelTopConstraint?.isActive = true
             } else {
-                headingTitle.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 25).isActive = true
+                self.headingTitleLabelTopConstraint = headingTitle.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 12)
+                self.headingTitleLabelTopConstraint?.isActive = true
             }
             
             headingTitle.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
@@ -864,17 +900,18 @@ extension BJOTPViewController {
             primaryHeaderLabel.adjustsFontForContentSizeCategory = true
             
             let headlineFontMetric = UIFontMetrics.init(forTextStyle: .headline)
-            let primaryHeaderLabelFont = headlineFontMetric.scaledFont(for: .systemFont(ofSize: NSObject.deviceIsMacOrIpad ? 30 : 22, weight: .bold))
+            let primaryHeaderLabelFont = headlineFontMetric.scaledFont(for: .systemFont(ofSize: NSObject.deviceIsMacOrIpad ? 30 : 20, weight: .bold))
             primaryHeaderLabel.font = primaryHeaderLabelFont
             
+            primaryHeaderLabel.adjustsFontSizeToFitWidth = true
             primaryHeaderLabel.setContentHuggingPriority(.init(1000), for: .vertical)
             primaryHeaderLabel.setContentCompressionResistancePriority(.init(1000), for: .vertical)
             primaryHeaderLabel.lineBreakMode = .byTruncatingMiddle
             primaryHeaderLabel.textAlignment = .center
-            primaryHeaderLabel.numberOfLines = 0
+            primaryHeaderLabel.numberOfLines = 1
             primaryHeaderLabel.text = self.primaryHeaderTitle
             primaryHeaderLabel.widthAnchor.constraint(equalToConstant: NSObject.newWidth).isActive = true
-            primaryHeaderLabel.heightAnchor.constraint(equalToConstant: NSObject.deviceIsMacOrIpad ? 45 : 40).isActive = true
+            primaryHeaderLabel.heightAnchor.constraint(equalToConstant: NSObject.deviceIsMacOrIpad ? 45 : 35).isActive = true
             self.primaryHeaderLabel = primaryHeaderLabel
         }
     }
@@ -893,10 +930,11 @@ extension BJOTPViewController {
             secondaryHeaderLabel.setContentCompressionResistancePriority(.init(1000), for: .vertical)
             secondaryHeaderLabel.lineBreakMode = .byTruncatingMiddle
             secondaryHeaderLabel.textAlignment = .center
-            secondaryHeaderLabel.numberOfLines = 0
+            secondaryHeaderLabel.numberOfLines = 2
+            secondaryHeaderLabel.adjustsFontSizeToFitWidth = true
             secondaryHeaderLabel.text = self.secondaryHeaderTitle
             secondaryHeaderLabel.widthAnchor.constraint(equalToConstant: NSObject.newWidth).isActive = true
-            secondaryHeaderLabel.heightAnchor.constraint(equalToConstant: NSObject.deviceIsMacOrIpad ? 30 : 20).isActive = true
+//            secondaryHeaderLabel.heightAnchor.constraint(equalToConstant: NSObject.deviceIsMacOrIpad ? 30 : 25).isActive = true
             self.secondaryHeaderLabel = secondaryHeaderLabel
         }
     }
@@ -908,7 +946,6 @@ extension BJOTPViewController {
     fileprivate func layoutFooterLabel() {
         if let _ = footerTitle {
             let footerButton = BJOTPAuthenticateButton()
-            
             let footerLabelFontSize = NSObject.deviceIsMacOrIpad ? 13.0 : 11.0
             let captionFontMetric = UIFontMetrics.init(forTextStyle: .caption2)
             let footerLabelFont = captionFontMetric.scaledFont(for: .systemFont(ofSize: footerLabelFontSize, weight: .regular))
@@ -920,6 +957,7 @@ extension BJOTPViewController {
             footerButton.titleLabel?.font = footerLabelFont
             footerButton.titleLabel?.textAlignment = .center
             footerButton.titleLabel?.adjustsFontForContentSizeCategory = true
+            footerButton.titleLabel?.adjustsFontSizeToFitWidth = true
             
             var labelTitleColor: UIColor!
             
@@ -934,11 +972,9 @@ extension BJOTPViewController {
             }
             
             footerButton.setTitleColor(shouldFooterBehaveAsButton ? (self.footerButtonColor ?? .systemBlue) : labelTitleColor, for: .normal)
-            footerButton.setContentHuggingPriority(.init(1000), for: .vertical)
-            footerButton.setContentCompressionResistancePriority(.init(1000), for: .vertical)
             footerButton.titleLabel?.lineBreakMode = .byTruncatingMiddle
             footerButton.titleLabel?.textAlignment = .center
-            footerButton.titleLabel?.numberOfLines = 0
+            footerButton.titleLabel?.numberOfLines = 3
             footerButton.setTitle(self.footerTitle, for: .normal)
             
             self.footerButton = footerButton
@@ -948,7 +984,7 @@ extension BJOTPViewController {
     fileprivate func layoutStackViewForHeaderLabels() {
         let headerTextsStackView = UIStackView(arrangedSubviews: [self.primaryHeaderLabel, self.secondaryHeaderLabel].compactMap { view in view } )
         headerTextsStackView.axis = .vertical
-        headerTextsStackView.spacing = -2
+        headerTextsStackView.spacing = 0
         headerTextsStackView.alignment = .center
         headerTextsStackView.distribution = .fill
         self.headerTextsStackView = headerTextsStackView
@@ -990,7 +1026,7 @@ extension BJOTPViewController {
     fileprivate func layoutMasterStackView() {
         let masterStackView = UIStackView(arrangedSubviews: [self.brandImageView, self.headerTextsStackView, self.stackView, self.authenticateButton, self.footerButton].compactMap { view in view } )
         masterStackView.axis = .vertical
-        masterStackView.spacing = 10
+        masterStackView.spacing = NSObject.deviceIsMacOrIpad ? 15 : 8
         masterStackView.alignment = .center
         masterStackView.distribution = .fill
         self.view.addSubview(masterStackView)
@@ -1018,18 +1054,19 @@ extension BJOTPViewController {
         let headingLabelTopOffset: CGFloat = 25
         
         #if targetEnvironment(macCatalyst)
-        bottomInset = !(self.navigationController?.isNavigationBarHidden ?? true) ? -24 : 0
+        bottomInset = !(self.navigationController?.isNavigationBarHidden ?? true) ? self.brandImage != nil ? 24 : 0 : 0
+        
         #else
         bottomInset = UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 0.0
         statusBarHeight = UIApplication.shared.statusBarFrame.size.height
         #endif
         
         if !(self.navigationController?.isNavigationBarHidden ?? true) {
-            return (self.navBarHeight + statusBarHeight - bottomInset) / 2
+            return (self.navBarHeight + statusBarHeight - bottomInset) / (self.brandImage != nil ? 2 :  NSObject.deviceIsInLandscape ? 2 : 1) - (!NSObject.deviceIsInLandscape ? (self.navBarHeight) : 0)
         } else {
             return bottomInset == 0 ?
-                ((self.headingTitleLabel?.intrinsicContentSize.height ?? 0 + headingLabelTopOffset) / 2) :
-                (bottomInset / 2)
+            ((self.headingTitleLabel?.intrinsicContentSize.height ?? 0 + headingLabelTopOffset) / 8) :
+            (NSObject.deviceIsInLandscape || NSObject.deviceIsMacCatalyst) ? -(bottomInset / 8) : (self.brandImage != nil ? -bottomInset : 0)
         }
     }
     
@@ -1046,11 +1083,11 @@ extension BJOTPViewController {
 extension BJOTPViewController {
     
     fileprivate func initialConfiguration() {
-        self.modalConfig()
+        self.modalAndNavBarConfig()
         self.configureKeyboardAndOtherNotifications()
     }
     
-    fileprivate func modalConfig() {
+    fileprivate func modalAndNavBarConfig() {
         if self.navigationController == nil {
             if #available(iOS 13.0, *) {
                 self.isModalInPresentation = true
@@ -1097,15 +1134,12 @@ extension BJOTPViewController {
          * Need this delay for the UI to finish being laid out
          * to check if the keyboard is obscuring the button or not initially.
          */
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            self.offsetForKeyboardPosition(notification as NSNotification)
-        }
+        self.offsetForKeyboardPosition(notification as NSNotification)
+
     }
     
     @objc func keyboardWillHide(_ notification: Notification) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            self.resetToDefaultOffsetForKeyboardPosition(notification as NSNotification)
-        }
+        self.resetToDefaultOffsetForKeyboardPosition(notification as NSNotification)
     }
     
     @objc func appWillEnterForeground(_ notification: Notification) {
@@ -1132,11 +1166,12 @@ extension BJOTPViewController {
         self.keyboardOffsetDuringEditing = (authButtonMaxY - keyboardMinY + (NSObject.self.deviceIsiPad ? 10 : 5))
         ///Means the keyboard overlaps the authenticate button
         if authButtonMaxY > keyboardMinY {
-            UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.1, options: [.curveEaseIn, .curveEaseOut], animations: {
+            UIView.animate(withDuration: 0.35) {
                 self.masterStackViewCenterYConstraint.constant -= self.keyboardOffsetDuringEditing
                 self.setLabelsAlpha(0.0)
                 self.view.layoutIfNeeded()
-            }, completion: nil)
+                self.view.setNeedsUpdateConstraints()
+            }
         }
     }
     
@@ -1172,11 +1207,13 @@ extension BJOTPViewController {
                 }, completion: nil)
             }
         }
+        
     }
     
     fileprivate func setLabelsAlpha(_ value: CGFloat) {
+        
         if value == 0 {
-            if !NSObject.deviceIsInLandscape {
+            if self.keyboardOffsetDuringEditing < 88 && !NSObject.deviceIsInLandscape {
                 return
             }
         }
@@ -1186,25 +1223,9 @@ extension BJOTPViewController {
         self.headingTitleLabel?.alpha = value
         self.primaryHeaderLabel?.alpha = finalAlpha
         self.secondaryHeaderLabel?.alpha = finalAlpha
-        self.footerButton?.alpha = finalAlpha
-        self.brandImageView?.alpha = finalAlpha
+        self.brandImageView?.alpha = NSObject.deviceIsInLandscape ? value : 1.0
     }
     
-}
-
-extension BJOTPViewController: BJMenuActionDelegate {
-    func canPerform(_ action: Selector) -> Bool {
-        var cc: String? = ""
-        
-        if NSObject.deviceIsMacCatalyst {
-            if UIPasteboard.general.hasStrings {
-                cc = UIPasteboard.general.string!
-            }
-        }
-        
-        guard let copiedString = cc else { return false }
-        return copiedString.count == numberOfOtpCharacters
-    }
 }
 
 
@@ -1259,7 +1280,7 @@ extension BJOTPViewController {
     
     private func askUserConsentBeforeDismissingModal() {
         if hapticsEnabled { UINotificationFeedbackGenerator().notificationOccurred(.error) }
-        self.showSimpleAlertWithTitle("Are you sure you want to close without authenticating?", message: nil, firstButtonTitle: "No", secondButtonTitle: "Yes", isSecondButtonDestructive: true, firstButtonAction: nil) { (action) in
+        self.showSimpleAlertWithTitle("Are you sure you want to close?", message: nil, firstButtonTitle: "No", secondButtonTitle: "Yes", isSecondButtonDestructive: true, firstButtonAction: nil) { (action) in
             self.dismiss(animated: true)
         }
     }
@@ -1294,4 +1315,3 @@ extension BJOTPViewController: UISceneDelegate {
         #endif
     }
 }
-
