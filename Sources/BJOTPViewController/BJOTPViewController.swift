@@ -625,8 +625,16 @@ extension BJOTPViewController: UITextFieldDelegate {
                     allTextFields[idx].text = String(element)
                 }
                 textField.resignFirstResponder()
-                textField.becomeFirstResponder()
-                textField.resignFirstResponder()
+                
+                ///At the bottom, we make the text field the first responder and then resign it because, when using
+                ///OCR feature in iOS, after pasting the content, the secure text entry text field won't
+                ///hide the character pasted unless we tap on that text field again - making it a first reponder.
+                ///
+                ///We are manually making it the first responder to fix this issue.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                    textField.becomeFirstResponder()
+                    textField.resignFirstResponder()
+                }
                 self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
                 self.informDelegate(string, from: self)
                 ///If the replacing string is of 1 character length, then we just allow it to be replaced
