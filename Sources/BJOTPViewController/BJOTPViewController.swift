@@ -593,7 +593,7 @@ extension BJOTPViewController: UITextFieldDelegate {
         if (string == "" || string == " ") && range.length == 0 {
             
             ///But, auto-fill from SMS - before sending in the characters one by one - will
-            ///send two empty strings ("") in succession very fast, unlike the speed a human may enter passcode.
+            ///send two (one in case of mac catalyst) empty strings ("") in succession very fast, unlike the speed a human may enter passcode.
             ///
             ///We need to check for it and have to decide/assume that what we have received is indeed auto-filled code from SMS.
             ///
@@ -624,6 +624,8 @@ extension BJOTPViewController: UITextFieldDelegate {
                 for (idx, element) in string.enumerated() {
                     allTextFields[idx].text = String(element)
                 }
+                textField.resignFirstResponder()
+                textField.becomeFirstResponder()
                 textField.resignFirstResponder()
                 self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
                 self.informDelegate(string, from: self)
