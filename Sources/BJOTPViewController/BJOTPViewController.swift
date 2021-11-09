@@ -626,7 +626,7 @@ extension BJOTPViewController: UITextFieldDelegate {
                 }
                 textField.resignFirstResponder()
                 
-                ///At the bottom, we make the text field the first responder and then resign it because, when using
+                ///Here below, we make the text field the first responder and then resign it because, when using
                 ///OCR feature in iOS, after pasting the content, the secure text entry text field won't
                 ///hide the character pasted unless we tap on that text field again - making it a first reponder.
                 ///
