@@ -39,7 +39,8 @@ final class BJOTPTextField: UITextField {
     }
     
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        if action == #selector(paste(_:)) ||
+        if  action == #selector(paste(_:)) ||
+            action == NSSelectorFromString("captureTextFromCamera:") ||
             action == NSSelectorFromString("pasteAndMatchStyle:") {
             return super.canPerformAction(action, withSender: sender)
         }
