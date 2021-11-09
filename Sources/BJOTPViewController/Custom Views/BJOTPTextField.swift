@@ -28,13 +28,7 @@
 
 import UIKit
 
-@objc protocol BJMenuActionDelegate {
-    @objc func canPerform(_ action: Selector) -> Bool
-}
-
 final class BJOTPTextField: UITextField {
-    
-    weak var menuActionDelegate: BJMenuActionDelegate? = nil
     
     override func caretRect(for position: UITextPosition) -> CGRect {
         return .init(origin: .init(x: self.bounds.midX, y: self.bounds.origin.y), size: .init(width: 0.1, height: 0.1))
@@ -47,10 +41,9 @@ final class BJOTPTextField: UITextField {
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         if action == #selector(paste(_:)) ||
             action == NSSelectorFromString("pasteAndMatchStyle:") {
-            return self.menuActionDelegate?.canPerform(action) ??
-                super.canPerformAction(action, withSender: sender)
+            return super.canPerformAction(action, withSender: sender)
         }
-        return super.canPerformAction(action, withSender: sender)
+        return false
     }
     
 }
