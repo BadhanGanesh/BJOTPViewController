@@ -628,7 +628,7 @@ extension BJOTPViewController: UITextFieldDelegate {
                 
                 ///Here below, we make the text field the first responder and then resign it because, when using
                 ///OCR feature in iOS, after pasting the content, the secure text entry text field won't
-                ///hide the character pasted unless we tap on that text field again - making it a first reponder.
+                ///hide the character pasted unless we tap on that text field again - making it a first responder.
                 ///
                 ///We are manually making it the first responder to fix this issue.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
