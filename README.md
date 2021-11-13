@@ -83,18 +83,18 @@ self.present(oneTimePasswordVC, animated: true, completion: nil)
 
  func authenticate(_ otp: String, from viewController: BJOTPViewController) {
  
-/**
- * This method gets called when the user has entered all the otp characters and tapped the button.
- * Use this delegate method to make API calls, show loading animation in `viewController`, do whatever you want.
- * You can dismiss (if presented) the `viewController` when you're done.
- *
- * This method will get called only after the validation is successful, i.e., after the user has filled all the text fields.
- *
- * - Parameter otp: The full otp string entered.
- * - Parameter viewController: The otp view controller.
- *
- * - Author: Badhan Ganesh
- */
+ /**
+  * This method gets called when the user has entered all the otp characters and tapped the button.
+  * Use this delegate method to make API calls, show loading animation in `viewController`, do whatever you want.
+  * You can dismiss (if presented) the `viewController` when you're done.
+  *
+  * This method will get called only after the validation is successful, i.e., after the user has filled all the text fields.
+  *
+  * - Parameter otp: The full otp string entered.
+  * - Parameter viewController: The otp view controller.
+  *
+  * - Author: Badhan Ganesh
+  */
  
  }
 
