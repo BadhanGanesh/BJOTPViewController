@@ -4,44 +4,14 @@ import BJOTPViewController
 class ViewController: UIViewController {
     
     var otpScreen: BJOTPViewController?
-    
-    let options: [[String: String]] = [
-        
-        [ "primaryLabel" : "Two-Factor Authentication",
-          "secondaryLabel" : "A message with a verification code has been sent to your devices. Enter the code to continue.",
-          "brandImage": "applelogo",
-          "titleLabel": "App Store Connect",
-          "buttonTitle" : "SIGN IN WITH APPLE"],
-        
-        [ "primaryLabel" : "Enter One Time Code",
-          "secondaryLabel" : "A message with a verification code has been sent to your devices. Enter the code to continue.",
-          "brandImage": "logo.playstation",
-          "titleLabel": "PlayStation Studios",
-          "buttonTitle" : "LOGIN SECURELY"],
-        
-        [ "primaryLabel" : "We have sent you a code",
-          "secondaryLabel" : "A message with a verification code has been sent to your devices. Enter the code to continue.",
-          "brandImage": "logo.xbox",
-          "titleLabel": "Xbox Game Pass",
-          "buttonTitle" : "GO TO XBOX GAME PASS"],
-        
-        [ "primaryLabel" : "One Time Password",
-          "secondaryLabel" : "A message with a verification code has been sent to your devices. Enter the code to continue.",
-          "brandImage": "",
-          "titleLabel": "Verification Needed",
-          "buttonTitle" : "VERIFY OTP"],
-        
-    ]
-    
-    
+
     @IBAction func onModalButtonTap(_ sender: UIButton) {
         
-        let option = options.randomElement()!
-        let imageName: String = option["brandImage"]!
-        let titleLabel: String = option["titleLabel"]!
-        let primaryLabel: String = option["primaryLabel"]!
-        let secondaryLabel: String = option["secondaryLabel"]!
-        let buttonTitle: String = option["buttonTitle"]!
+        let imageName: String = "logo.xbox"
+        let titleLabel: String = "Microsoft 2FA Login"
+        let primaryLabel: String = "Enter One Time Code"
+        let secondaryLabel: String = "A message with a verification code has been sent to your devices. Enter the code to continue."
+        let buttonTitle: String = "LOGIN SECURELY"
         
         //Initialize viewcontroller
         self.otpScreen = BJOTPViewController(withHeading: titleLabel,
@@ -50,12 +20,13 @@ class ViewController: UIViewController {
         
         //Set titles
         otpScreen?.openKeyboadDuringStartup = true
-        otpScreen?.accentColor = .systemBlue
+        otpScreen?.accentColor = .systemRed
         otpScreen?.primaryHeaderTitle = primaryLabel
         otpScreen?.secondaryHeaderTitle = secondaryLabel
         otpScreen?.footerTitle = "Didn't get verification code?"
         otpScreen?.shouldFooterBehaveAsButton = true
         otpScreen?.authenticateButtonTitle = buttonTitle
+        
         if #available(iOS 13.0, *) {
             otpScreen?.brandImage = .init(systemName: imageName)?.withTintColor(UITraitCollection.current.userInterfaceStyle == .dark ? .white : .black).withRenderingMode(.alwaysOriginal)
         }
@@ -67,12 +38,11 @@ class ViewController: UIViewController {
     
     @IBAction func onPushButtonTap(_ sender: UIButton) {
         
-        let option = options.randomElement()!
-        let imageName: String = option["brandImage"]!
-        let titleLabel: String = option["titleLabel"]!
-        let primaryLabel: String = option["primaryLabel"]!
-        let secondaryLabel: String = option["secondaryLabel"]!
-        let buttonTitle: String = option["buttonTitle"]!
+        let imageName: String = "logo.xbox"
+        let titleLabel: String = "Microsoft 2FA Login"
+        let primaryLabel: String = "Enter One Time Code"
+        let secondaryLabel: String = "A message with a verification code has been sent to your devices. Enter the code to continue."
+        let buttonTitle: String = "LOGIN SECURELY"
         
         //Initialize viewcontroller
         self.otpScreen = BJOTPViewController(withHeading: titleLabel,
@@ -108,16 +78,16 @@ class ViewController: UIViewController {
 extension ViewController: BJOTPViewControllerDelegate {
     
     func didClose(_ viewController: BJOTPViewController) {
-        //self.showSimpleAlertWithTitle("OTP Screen Closed", firstButtonTitle: "OK")
+        ///option-click on the method name above to see more details about it.
         self.otpScreen = nil
     }
     
     func authenticate(_ otp: String, from viewController: BJOTPViewController) {
-        //viewController.showSimpleAlertWithTitle("Entered One Time Code is", message: otp, firstButtonTitle: "OK")
+        ///option-click on the method name above to see more details about it.
     }
     
     func didTap(footer button: UIButton, from viewController: BJOTPViewController) {
-        //viewController.showSimpleAlertWithTitle("Footer button tapped", message: "You could call an API to resend the one time code.", firstButtonTitle: "OK")
+        ///option-click on the method name above to see more details about it.
     }
     
 }

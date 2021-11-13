@@ -83,17 +83,18 @@ self.present(oneTimePasswordVC, animated: true, completion: nil)
 
  func authenticate(_ otp: String, from viewController: BJOTPViewController) {
  
- /**
-  * Use this delegate method to make API calls, show loading animation in `viewController`, do whatever you want.
-  * You can dismiss (if presented) the `viewController` when you're done.
-  *
-  * This method will get called only after the validation is successful, i.e., after the user has filled all the text fields.
-  *
-  * - Parameter otp: The full otp string entered.
-  * - Parameter viewController: The otp view controller.
-  *
-  * - Author: Badhan Ganesh
-  */
+/**
+ * This method gets called when the user has entered all the otp characters and tapped the button.
+ * Use this delegate method to make API calls, show loading animation in `viewController`, do whatever you want.
+ * You can dismiss (if presented) the `viewController` when you're done.
+ *
+ * This method will get called only after the validation is successful, i.e., after the user has filled all the text fields.
+ *
+ * - Parameter otp: The full otp string entered.
+ * - Parameter viewController: The otp view controller.
+ *
+ * - Author: Badhan Ganesh
+ */
  
  }
 
@@ -244,11 +245,28 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
 /**
  * The color of the footer.
  *
- * This color will be applied only when `shouldFooterBehaveAsButton` is set to `true`. Default gray color will be used otherwise. Default color is `.systemBlue`.
+ * This color will be applied only when `shouldFooterBehaveAsButton` is set to `true`. Default gray color will be used otherwise. The accent color will be used by default if there is no `footerButtonColor` supplied.
  *
  * - Author: Badhan Ganesh
  */
 @objc public var footerButtonColor: UIColor?
+
+/**
+ * The image (logo) of your brand that you would like to add to the top of the OTP UI
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var brandImage: UIImage?
+
+/**
+ * The color of the close button.
+ *
+ * The accent color will be used by default if there is no `closeButtonColor` supplied.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public var closeButtonColor: UIColor?
+    
 ```
 
 

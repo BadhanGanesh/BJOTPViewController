@@ -117,6 +117,7 @@ import UIKit
  func authenticate(_ otp: String, from viewController: BJOTPViewController) {
  
  /**
+  * This method gets called when the user has entered all the otp characters and tapped the button.
   * Use this delegate method to make API calls, show loading animation in `viewController`, do whatever you want.
   * You can dismiss (if presented) the `viewController` when you're done.
   *
@@ -408,14 +409,16 @@ open class BJOTPViewController: UIViewController {
     /**
      * The color of the footer.
      *
-     * This color will be applied only when `shouldFooterBehaveAsButton` is set to `true`. Default gray color will be used otherwise. Default color is `.systemBlue`.
+     * This color will be applied only when `shouldFooterBehaveAsButton` is set to `true`. Default gray color will be used otherwise. The accent color will be used by default if there is no `footerButtonColor` supplied. 
      *
      * - Author: Badhan Ganesh
      */
     @objc public var footerButtonColor: UIColor?
     
     /**
-     * The image (logo) of your brand that you would like to add to the top of the OTP UI
+     * The image (logo) of your brand that you would like to add to the top of the OTP UI.
+     *
+     * Images with 1:1 (Square) aspect ratio is preferred to be filled fully, since the content mode of the image view is `.scaleAspectFit`.
      *
      * - Author: Badhan Ganesh
      */
@@ -426,6 +429,15 @@ open class BJOTPViewController: UIViewController {
             }
         }
     }
+    
+    /**
+     * The color of the close button.
+     *
+     * The accent color will be used by default if there is no `closeButtonColor` supplied.
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc public var closeButtonColor: UIColor?
     
     //
     ////////////////////////////////////////////////////////////////
@@ -773,7 +785,7 @@ extension BJOTPViewController {
         /// 4. Brand Logo / Image
         layoutBrandImageView()
         
-        /// 4. Layout all stackviews and its contents.
+        /// 5. Layout all stackviews and its contents.
         layoutAllStackViews(with: allTextFields)
         
         /// 6. Layout close button at the bottom.
@@ -803,7 +815,7 @@ extension BJOTPViewController {
             closeButton.useHaptics = false
             closeButton.setTitle("CLOSE", for: .normal)
             closeButton.showsTouchWhenHighlighted = false
-            closeButton.setTitleColor(self.authenticateButtonColor ?? self.accentColor, for: .normal)
+            closeButton.setTitleColor(self.closeButtonColor ?? self.accentColor, for: .normal)
             closeButton.titleLabel?.font = UIFont.systemFont(ofSize: NSObject.deviceIsMacOrIpad ? 14.5 : 12, weight: .bold)
             closeButton.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
             
@@ -985,7 +997,7 @@ extension BJOTPViewController {
                 footerButton.addTarget(self, action: #selector(footerButtonTapped(_:)), for: .touchUpInside)
             }
             
-            footerButton.setTitleColor(shouldFooterBehaveAsButton ? (self.footerButtonColor ?? .systemBlue) : labelTitleColor, for: .normal)
+            footerButton.setTitleColor(shouldFooterBehaveAsButton ? (self.footerButtonColor ?? self.accentColor) : labelTitleColor, for: .normal)
             footerButton.titleLabel?.lineBreakMode = .byTruncatingMiddle
             footerButton.titleLabel?.textAlignment = .center
             footerButton.titleLabel?.numberOfLines = 3
@@ -1144,10 +1156,6 @@ extension BJOTPViewController {
             return
         }
         
-        /**
-         * Need this delay for the UI to finish being laid out
-         * to check if the keyboard is obscuring the button or not initially.
-         */
         self.offsetForKeyboardPosition(notification as NSNotification)
 
     }
@@ -1178,6 +1186,7 @@ extension BJOTPViewController {
         let keyboardMinY = keyboardFrame.origin.y
         
         self.keyboardOffsetDuringEditing = (authButtonMaxY - keyboardMinY + (NSObject.self.deviceIsiPad ? 10 : 5))
+        
         ///Means the keyboard overlaps the authenticate button
         if authButtonMaxY > keyboardMinY {
             UIView.animate(withDuration: 0.35) {
@@ -1334,11 +1343,11 @@ extension BJOTPViewController: UIAdaptivePresentationControllerDelegate {
 @available(iOS 13.0, *)
 extension BJOTPViewController: UISceneDelegate {
     public func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        #if targetEnvironment(macCatalyst)
+        if NSObject.deviceIsMacCatalyst {
             let windowScene = scene as! UIWindowScene
             
             windowScene.sizeRestrictions?.minimumSize = .init(width: 800, height: 600)
             windowScene.sizeRestrictions?.maximumSize = windowScene.sizeRestrictions?.minimumSize ?? .init(width: 1024, height: 768)
-        #endif
+        }
     }
 }
