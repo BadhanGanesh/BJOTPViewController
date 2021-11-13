@@ -559,7 +559,16 @@ open class BJOTPViewController: UIViewController {
         }) { (completed) in
             self.didTapToDismissKeyboard = false
         }
-        self.view.endEditing(true)
+        
+        ///Here below, we make the text field the first responder and then resign it because, when using
+        ///OCR feature in iOS, after pasting the content, the secure text entry text field won't
+        ///hide the character pasted unless we tap on that text field again - making it a first responder.
+        ///
+        ///We are manually making it the first responder to fix this issue.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            self.currentTextField?.becomeFirstResponder()
+            self.currentTextField?.resignFirstResponder()
+        }
     }
     
     deinit {
@@ -604,7 +613,7 @@ extension BJOTPViewController: UITextFieldDelegate {
                     self.autoFillingFromSMS = true
                 } else {
                     if let oldInterval = timeIntervalBetweenAutofilledCharactersFromSMS {
-                        if Date().timeIntervalSince(oldInterval) < 0.05 {
+                        if Date().timeIntervalSince(oldInterval) < 0.08 {
                             self.autoFillingFromSMS = true
                             timeIntervalBetweenAutofilledCharactersFromSMS = nil
                         }
@@ -621,20 +630,11 @@ extension BJOTPViewController: UITextFieldDelegate {
             ///If the string is of the same length as the number of otp characters, then we proceed to
             ///fill all the text fields with the characters
             if string.count == numberOfOtpCharacters {
+                
                 for (idx, element) in string.enumerated() {
                     allTextFields[idx].text = String(element)
                 }
-                textField.resignFirstResponder()
                 
-                ///Here below, we make the text field the first responder and then resign it because, when using
-                ///OCR feature in iOS, after pasting the content, the secure text entry text field won't
-                ///hide the character pasted unless we tap on that text field again - making it a first responder.
-                ///
-                ///We are manually making it the first responder to fix this issue.
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                    textField.becomeFirstResponder()
-                    textField.resignFirstResponder()
-                }
                 self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
                 self.informDelegate(string, from: self)
                 ///If the replacing string is of 1 character length, then we just allow it to be replaced
@@ -648,7 +648,7 @@ extension BJOTPViewController: UITextFieldDelegate {
             if autoFillingFromSMS {
                 
                 autoFillBuffer.append(string)
-                                
+
                 ///`checkOtpFromMessagesCount` below specifically checks if the entered string is less than the maximum allowed characters.
                 ///Since we are debouncing it, `checkOtpFromMessagesCount` will get called only once.
                 ///And we don't allow any characters that are less than the allowed ones.
@@ -690,14 +690,14 @@ extension BJOTPViewController: UITextFieldDelegate {
     }
     
     public func textFieldDidBeginEditing(_ textField: UITextField) {
-        textField.roundCorners(amount: 4)
-        textField.setBorder(amount: 3, borderColor: (currentTextFieldColor ?? accentColor).withAlphaComponent(0.4), duration: 0)
         self.currentTextField = textField as? BJOTPTextField
+        textField.roundCorners(amount: 4)
+        textField.setBorder(amount: 3, borderColor: (self.currentTextFieldColor ?? self.accentColor).withAlphaComponent(0.4), duration: 0.15)
     }
     
     public func textFieldDidEndEditing(_ textField: UITextField) {
-        textField.setBorder(amount: 1.8, borderColor: UIColor.lightGray.withAlphaComponent(0.3), duration: 0.09)
         self.currentTextField = nil
+        textField.setBorder(amount: 1.8, borderColor: UIColor.lightGray.withAlphaComponent(0.3), duration: 0.15)
     }
     
     private func setNextResponder(_ index: Int?, direction: Direction) {
@@ -855,10 +855,14 @@ extension BJOTPViewController {
         textField.backgroundColor = .white
         textField.isSecureTextEntry = true
         textField.keyboardType = .numberPad
+        textField.menuActionDelegate = self
         textField.setBorder(amount: 1.8, borderColor: UIColor.lightGray.withAlphaComponent(0.28), duration: 0.09)
         textField.widthAnchor.constraint(equalToConstant: NSObject.newWidth).isActive = numberOfOtpCharacters == 1
         textField.heightAnchor.constraint(equalTo: textField.widthAnchor, multiplier: 1.0).isActive = true
         
+        if #available(iOS 12.0, *) {
+            textField.textContentType = .oneTimeCode
+        }
         return textField
     }
     
@@ -960,7 +964,7 @@ extension BJOTPViewController {
             let captionFontMetric = UIFontMetrics.init(forTextStyle: .caption2)
             let footerLabelFont = captionFontMetric.scaledFont(for: .systemFont(ofSize: footerLabelFontSize, weight: .regular))
             
-            footerButton.useHaptics = false
+            footerButton.useHaptics = hapticsEnabled
             footerButton.animate = shouldFooterBehaveAsButton
             footerButton.isUserInteractionEnabled = shouldFooterBehaveAsButton
             
@@ -1236,6 +1240,19 @@ extension BJOTPViewController {
         self.brandImageView?.alpha = NSObject.deviceIsInLandscape ? value : 1.0
     }
     
+}
+
+extension BJOTPViewController: BJMenuActionDelegate {
+    public func canPerform(_ action: Selector) -> Bool {
+        if NSObject.deviceIsMacCatalyst {
+            guard UIPasteboard.general.hasStrings else { return false }
+            guard let copiedString = UIPasteboard.general.string else { return false }
+            return copiedString.count == numberOfOtpCharacters
+        } else {
+            guard let copiedString = Self.clipboardContent else { return false }
+            return copiedString.count == numberOfOtpCharacters
+        }
+    }
 }
 
 

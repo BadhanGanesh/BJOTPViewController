@@ -244,10 +244,12 @@ extension UIView {
      - Author: Badhan Ganesh
      */
     @objc func setBorder(amount: CGFloat, borderColor: UIColor = .clear, duration: TimeInterval) {
-        self.layer.masksToBounds = true
-        self.clipsToBounds = true
-        self.layer.borderColor = borderColor.cgColor
-        self.layer.borderWidth = amount
+        UIView.animate(withDuration: duration) {
+            self.layer.masksToBounds = true
+            self.clipsToBounds = true
+            self.layer.borderColor = borderColor.cgColor
+            self.layer.borderWidth = amount
+        }
     }
     
     /**

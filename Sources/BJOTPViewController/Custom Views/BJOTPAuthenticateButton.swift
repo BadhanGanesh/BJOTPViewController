@@ -26,7 +26,7 @@ final class BJOTPAuthenticateButton: UIButton {
         if animate {
             UIView.animate(withDuration: 0.15) {
                 self.transform = .init(scaleX: 0.97, y: 0.98)
-                self.alpha = 0.6
+                self.alpha = 0.8
             }
         }
         self.generateHaptic()
