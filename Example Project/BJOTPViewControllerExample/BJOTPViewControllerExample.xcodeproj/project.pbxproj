@@ -12,8 +12,7 @@
 		53741DEA272713B80006C219 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53741DE8272713B80006C219 /* Main.storyboard */; };
 		53741DEC272713BC0006C219 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53741DEB272713BC0006C219 /* Assets.xcassets */; };
 		53741DEF272713BC0006C219 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53741DED272713BC0006C219 /* LaunchScreen.storyboard */; };
-		53B25924272EAC2700F8A3D3 /* BJDraggable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B25923272EAC2600F8A3D3 /* BJDraggable.swift */; };
-		53FA34422739924000516B33 /* BJOTPViewController in Frameworks */ = {isa = PBXBuildFile; productRef = 53FA34412739924000516B33 /* BJOTPViewController */; };
+		53FC167E273B00DC00A4FFC8 /* BJOTPViewController in Frameworks */ = {isa = PBXBuildFile; productRef = 53FC167D273B00DC00A4FFC8 /* BJOTPViewController */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,14 +23,8 @@
 		53741DEB272713BC0006C219 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		53741DEE272713BC0006C219 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		53741DF0272713BC0006C219 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		53741DF8272714440006C219 /* UIViewControllerExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIViewControllerExtensions.swift; sourceTree = "<group>"; };
-		53741DF9272714440006C219 /* UIViewExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIViewExtensions.swift; sourceTree = "<group>"; };
-		53741DFB272714450006C219 /* UIColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIColorExtensions.swift; sourceTree = "<group>"; };
-		53741DFC272714450006C219 /* BJOTPViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BJOTPViewController.swift; sourceTree = "<group>"; };
-		53741DFE272714450006C219 /* BJOTPAuthenticateButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BJOTPAuthenticateButton.swift; sourceTree = "<group>"; };
-		53741DFF272714450006C219 /* BJOTPTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BJOTPTextField.swift; sourceTree = "<group>"; };
-		53B25923272EAC2600F8A3D3 /* BJDraggable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BJDraggable.swift; sourceTree = "<group>"; };
 		53E3E7032727E93D00A0D29B /* BJOTPViewControllerExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BJOTPViewControllerExample.entitlements; sourceTree = "<group>"; };
+		53FCEDD2274030EB0005477F /* BJOTPViewController */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BJOTPViewController; path = ../../..; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -39,7 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				53FA34422739924000516B33 /* BJOTPViewController in Frameworks */,
+				53FC167E273B00DC00A4FFC8 /* BJOTPViewController in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,45 +59,15 @@
 			isa = PBXGroup;
 			children = (
 				53E3E7032727E93D00A0D29B /* BJOTPViewControllerExample.entitlements */,
-				53741DF6272714440006C219 /* BJOTPViewController */,
+				53FCEDD2274030EB0005477F /* BJOTPViewController */,
 				53741DE2272713B80006C219 /* AppDelegate.swift */,
 				53741DE6272713B80006C219 /* ViewController.swift */,
 				53741DE8272713B80006C219 /* Main.storyboard */,
 				53741DEB272713BC0006C219 /* Assets.xcassets */,
 				53741DED272713BC0006C219 /* LaunchScreen.storyboard */,
 				53741DF0272713BC0006C219 /* Info.plist */,
-				53B25923272EAC2600F8A3D3 /* BJDraggable.swift */,
 			);
 			path = BJOTPViewControllerExample;
-			sourceTree = "<group>";
-		};
-		53741DF6272714440006C219 /* BJOTPViewController */ = {
-			isa = PBXGroup;
-			children = (
-				53741DF7272714440006C219 /* Swift Extensions */,
-				53741DFC272714450006C219 /* BJOTPViewController.swift */,
-				53741DFD272714450006C219 /* Custom Views */,
-			);
-			path = BJOTPViewController;
-			sourceTree = "<group>";
-		};
-		53741DF7272714440006C219 /* Swift Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				53741DF8272714440006C219 /* UIViewControllerExtensions.swift */,
-				53741DF9272714440006C219 /* UIViewExtensions.swift */,
-				53741DFB272714450006C219 /* UIColorExtensions.swift */,
-			);
-			path = "Swift Extensions";
-			sourceTree = "<group>";
-		};
-		53741DFD272714450006C219 /* Custom Views */ = {
-			isa = PBXGroup;
-			children = (
-				53741DFE272714450006C219 /* BJOTPAuthenticateButton.swift */,
-				53741DFF272714450006C219 /* BJOTPTextField.swift */,
-			);
-			path = "Custom Views";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -124,7 +87,7 @@
 			);
 			name = BJOTPViewControllerExample;
 			packageProductDependencies = (
-				53FA34412739924000516B33 /* BJOTPViewController */,
+				53FC167D273B00DC00A4FFC8 /* BJOTPViewController */,
 			);
 			productName = BJOTPViewControllerExample;
 			productReference = 53741DDF272713B80006C219 /* BJOTPViewControllerExample.app */;
@@ -155,7 +118,7 @@
 			);
 			mainGroup = 53741DD6272713B80006C219;
 			packageReferences = (
-				53FA34402739924000516B33 /* XCRemoteSwiftPackageReference "BJOTPViewController" */,
+				53FC167C273B00DC00A4FFC8 /* XCRemoteSwiftPackageReference "BJOTPViewController" */,
 			);
 			productRefGroup = 53741DE0272713B80006C219 /* Products */;
 			projectDirPath = "";
@@ -184,7 +147,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				53B25924272EAC2700F8A3D3 /* BJDraggable.swift in Sources */,
 				53741DE7272713B80006C219 /* ViewController.swift in Sources */,
 				53741DE3272713B80006C219 /* AppDelegate.swift in Sources */,
 			);
@@ -351,7 +313,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.2;
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -390,7 +352,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.2;
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -434,7 +396,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		53FA34402739924000516B33 /* XCRemoteSwiftPackageReference "BJOTPViewController" */ = {
+		53FC167C273B00DC00A4FFC8 /* XCRemoteSwiftPackageReference "BJOTPViewController" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/BadhanGanesh/BJOTPViewController";
 			requirement = {
@@ -445,9 +407,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		53FA34412739924000516B33 /* BJOTPViewController */ = {
+		53FC167D273B00DC00A4FFC8 /* BJOTPViewController */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 53FA34402739924000516B33 /* XCRemoteSwiftPackageReference "BJOTPViewController" */;
+			package = 53FC167C273B00DC00A4FFC8 /* XCRemoteSwiftPackageReference "BJOTPViewController" */;
 			productName = BJOTPViewController;
 		};
 /* End XCSwiftPackageProductDependency section */

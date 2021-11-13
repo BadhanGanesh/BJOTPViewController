@@ -87,6 +87,7 @@ class ViewController: UIViewController {
         otpScreen?.footerTitle = "Didn't get verification code?"
         otpScreen?.shouldFooterBehaveAsButton = true
         otpScreen?.authenticateButtonTitle = buttonTitle
+        
         if #available(iOS 13.0, *) {
             otpScreen?.brandImage = .init(systemName: imageName)?.withTintColor(UITraitCollection.current.userInterfaceStyle == .dark ? .white : .black).withRenderingMode(.alwaysOriginal)
         }
