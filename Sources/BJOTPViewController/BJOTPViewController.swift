@@ -27,7 +27,11 @@
 
 
 import UIKit
-
+/**
+ * This protocol declares methods that are essential to use `BJOTPViewController`. They are used to handle button taps that happen during various scenarios, for example close button tap action.
+ *
+ * - Author: Badhan Ganesh
+ */
 @objc public protocol BJOTPViewControllerDelegate {
     /**
      * This method gets called when the user has entered all the otp characters and tapped the button.
