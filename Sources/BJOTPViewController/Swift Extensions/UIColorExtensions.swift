@@ -6,7 +6,7 @@
 
 // This code is distributed under the terms and conditions of the MIT license.
 
-// Copyright © 2018 Badhan Ganesh
+// Copyright © 2022 Badhan Ganesh
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal

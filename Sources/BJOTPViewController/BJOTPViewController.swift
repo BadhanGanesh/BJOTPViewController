@@ -5,7 +5,7 @@
 
 // This code is distributed under the terms and conditions of the MIT license.
 
-// Copyright © 2019 Badhan Ganesh
+// Copyright © 2022 Badhan Ganesh
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -418,7 +418,7 @@ open class BJOTPViewController: UIViewController {
     /**
      * The image (logo) of your brand that you would like to add to the top of the OTP UI.
      *
-     * Images with 1:1 (Square) aspect ratio is preferred to be filled fully, since the content mode of the image view is `.scaleAspectFit`.
+     * Images with 1:1 (Square) aspect ratio is preferred, to be filled fully, since the content mode of the image view is `.scaleAspectFit`.
      *
      * - Author: Badhan Ganesh
      */
@@ -897,7 +897,9 @@ extension BJOTPViewController {
             self.view.addSubview(headingTitle)
             
             if #available(iOS 11.0, *) {
-                let topInset = UIApplication.shared.keyWindow?.safeAreaInsets.top
+                var topInset = UIApplication.shared.keyWindow?.safeAreaInsets.top
+                topInset = NSObject.deviceIsMacCatalyst ? 21 : 0
+                
                 let constraintConstant: CGFloat = (topInset ?? 0) <= 20.0 ?
                 (!NSObject.deviceIsiPad && NSObject.deviceIsInLandscape ? 5 : 15) : 18
                 

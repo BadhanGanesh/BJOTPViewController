@@ -2,7 +2,7 @@
 //  BJOTPAuthenticateButton.swift
 //  bjotpviewcontroller
 //
-// Copyright © 2019 Badhan Ganesh
+// Copyright © 2022 Badhan Ganesh
 
 
 
