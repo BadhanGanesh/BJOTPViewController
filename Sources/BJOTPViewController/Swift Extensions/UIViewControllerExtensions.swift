@@ -37,7 +37,11 @@ extension UIViewController {
             alert.addAction(secondAction)
         }
         
-        self.present(alert, animated: true, completion: nil)
+        if let vc = self.presentedViewController {
+            vc.present(alert, animated: true, completion: nil)
+        } else {
+            self.present(alert, animated: true, completion: nil)
+        }
     }
     
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
