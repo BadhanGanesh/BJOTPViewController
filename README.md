@@ -14,48 +14,6 @@
 
 A very simple and neat-looking view controller that lets you type in OTPs quick and easy.
 
-
-## Supports
-
-✅ iOS 11.0+
-
-✅ Swift 4.0+
-
-✅ Portrait | Landscape
-
-✅ Light Mode | Dark Mode
-
-✅ iOS | iPadOS | macOS (Catalyst)
-
-✅ Objective-C (Xcode 11.4 onwards)
-
-
-## Features
-
-✅ Keyboard handling
-
-✅ Copy-Paste handling
-
-✅ Auto-fill from Messages app
-
-✅ Apple-inspired Clean User Interface
-
-✅ Custom primay / secondary / footer labels
-
-✅ Detection of copied text / code from outside the app
-
-
-## Installation
-
-1. In Xcode project, go to **File** → **Swift Packages** → **Add Package Dependency...**
-
-2. Paste the repo URL: https://github.com/BadhanGanesh/BJOTPViewController.git
-
-3. Follow onscreen instructions for choosing the package options and targets you want to add the dependency to - but make sure you always consider choosing the latest version for the best experience - and click **Finish** when you're done.
-
-
-## Screenshots
-
 ![App Screens 1](.app_screens_1.png)
 -----
 ![App Screens 2](.app_screens_2.png)
@@ -93,7 +51,6 @@ self.present(oneTimePasswordVC, animated: true, completion: nil)
   * - Parameter otp: The full otp string entered.
   * - Parameter viewController: The otp view controller.
   *
-  * - Author: Badhan Ganesh
   */
  
  }
@@ -107,7 +64,6 @@ self.present(oneTimePasswordVC, animated: true, completion: nil)
   *
   * - Parameter viewController: The otp view controller.
   *
-  * - Author: Badhan Ganesh
   */
   
  }
@@ -122,7 +78,6 @@ self.present(oneTimePasswordVC, animated: true, completion: nil)
   * - Parameter button: The button that's tapped.
   * - Parameter viewController: The otp view controller. Use this to show loaders, spinners, present any other view controllers on top etc..
   *
-  * - Author: Badhan Ganesh
   */
   
  }
@@ -156,7 +111,6 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  *
  * Default is `false`. Consider the `hideLabelsWhenEditing` property when setting this one to `true`, because when the keyboard is open as soon as the view controller is presented/pushed, if `hideLabelsWhenEditing` is `true`, the labels will be hidden initially as a result, and the user won't even know that the labels exist. It will be a better user experience if the user sees the labels initially since it guides them what to do. Choose wisely.
  *
- * - Author: Badhan Ganesh
  */
 @objc public var openKeyboadDuringStartup: Bool = false
 
@@ -165,7 +119,6 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  *
  * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`). Changing this value after presenting or pushing `BJOTPViewController` won't have an effect; the label won't be constructed.
  *
- * - Author: Badhan Ganesh
  */
 @objc public var primaryHeaderTitle: String?
 
@@ -174,7 +127,6 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  *
  * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`). Changing this value after presenting or pushing `BJOTPViewController` won't have an effect; the label won't be constructed.
  *
- * - Author: Badhan Ganesh
  */
 @objc public var secondaryHeaderTitle: String?
 
@@ -183,7 +135,6 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  *
  * This is optional. In case of nil, the label won't be constructed at all. So make sure to set a string, or leave it as it is (`nil`). Changing this value after presenting or pushing `BJOTPViewController` won't have an effect; the label won't be constructed.
  *
- * - Author: Badhan Ganesh
  */
 @objc public var footerTitle: String?
 
@@ -192,7 +143,6 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  *
  * Default is `false`
  *
- * - Author: Badhan Ganesh
  */
 @objc public var hideLabelsWhenEditing: Bool = false
 
@@ -205,7 +155,6 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  *
  * Pop-up won't be shown for the same string copied over and over. Clipboard will be checked when the app comes to foreground, and when the view controller's view finished appearing.
  *
- * - Author: Badhan Ganesh
  */
 @objc public var shouldPromptUserToPasteCopiedStringFromClipboard: Bool = true
 
@@ -220,7 +169,6 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  *
  * **Note:** OTP code won't be pasted for the same string copied over and over. Clipboard will be checked when the app comes to foreground, and when the view controller's view finished appearing.
  *
- * - Author: Badhan Ganesh
  */
 @objc public var shouldAutomaticallyPasteCopiedStringFromClipboard: Bool = false
 
@@ -229,7 +177,6 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  *
  * Default is `true`.
  *
- * - Author: Badhan Ganesh
  */
 @objc public var hapticsEnabled: Bool = true
 
@@ -238,7 +185,6 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  *
  * If `true`, the color of the footer will be `.systemBlue`, and gray otherwise. Default is `false`.
  *
- * - Author: Badhan Ganesh
  */
 @objc public var shouldFooterBehaveAsButton: Bool = false
 
@@ -247,14 +193,12 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  *
  * This color will be applied only when `shouldFooterBehaveAsButton` is set to `true`. Default gray color will be used otherwise. The accent color will be used by default if there is no `footerButtonColor` supplied.
  *
- * - Author: Badhan Ganesh
  */
 @objc public var footerButtonColor: UIColor?
 
 /**
  * The image (logo) of your brand that you would like to add to the top of the OTP UI
  *
- * - Author: Badhan Ganesh
  */
 @objc public var brandImage: UIImage?
 
@@ -263,16 +207,10 @@ oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
  *
  * The accent color will be used by default if there is no `closeButtonColor` supplied.
  *
- * - Author: Badhan Ganesh
  */
 @objc public var closeButtonColor: UIColor?
     
 ```
-
-
-## Contribution
-
-- Pull Requests are always welcome. Would love to see your inputs.
 
 
 ## License

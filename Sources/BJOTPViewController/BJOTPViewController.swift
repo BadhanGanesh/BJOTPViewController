@@ -28,7 +28,7 @@
 
 import UIKit
 /**
- * This protocol declares methods that are essential to use `BJOTPViewController`. They are used to handle button taps that happen during various scenarios, for example close button tap action.
+ * This protocol declares methods that are essential to use ``BJOTPViewController/BJOTPViewController``. They are used to handle button taps that happen during various scenarios, for example close button tap action.
  *
  * - Author: Badhan Ganesh
  */
@@ -61,7 +61,7 @@ import UIKit
     /**
      * This delegate method will get called when the footer button at the bottom is tapped. Use this to resend one time code from the server
      *
-     * This method will only be called when the `shouldFooterBehaveAsButton` is `true`.
+     * This method will only be called when the ``BJOTPViewController/BJOTPViewController/shouldFooterBehaveAsButton`` is `true`.
      *
      * - Parameter button: The button that's tapped.
      * - Parameter viewController: The otp view controller. Use this to show loaders, spinners, present any other view controllers on top etc..
@@ -76,95 +76,6 @@ import UIKit
  *
  * This is intended to be a drag and drop view controller that gets the work done quickly, in and out, that's it. No fancy customizations, no cluttering the screen with tons of UI elements and crazy colors. You'll be good to go with the default settings.
  *
- * * Supports Portrait | Landscape
- * * Light Mode | Dark Mode
- * * iOS | iPadOS | macOS (Catalyst)
- *
- * **Example Usage:**
- 
- * ```swift
- import BJOTPViewController
- 
- ---------------------------------------------
- //PRESENTATION
- ---------------------------------------------
- 
- // Initialise view controller
- let oneTimePasswordVC = BJOTPViewController.init(withHeading: "Two Factor Authentication",
-                                                  withNumberOfCharacters: 6,
-                                                  delegate: self)
- // Present it
- self.present(oneTimePasswordVC, animated: true, completion: nil)
- 
- ---------------------------------------------
- //VISUALS
- ---------------------------------------------
- 
- // Button title. Optional. Default is "AUTHENTICATE".
- oneTimePasswordVC.authenticateButtonTitle = "VERIFY OTP"
-
- // Sets the overall accent of the view controller. Optional. Default is system blue.
- oneTimePasswordVC.accentColor = UIColor.systemRed
-
- // Currently selected text field color. Optional. This takes precedence over the accent color.
- oneTimePasswordVC.currentTextFieldColor = UIColor.systemOrange
-
- // Button color. Optional. This takes precedence over the accent color.
- oneTimePasswordVC.authenticateButtonColor = UIColor.systemGreen
- 
- ---------------------------------------------
- //DELEGATE
- ---------------------------------------------
- 
- //Conform to BJOTPViewControllerDelegate
-
- func authenticate(_ otp: String, from viewController: BJOTPViewController) {
- 
- /**
-  * This method gets called when the user has entered all the otp characters and tapped the button.
-  * Use this delegate method to make API calls, show loading animation in `viewController`, do whatever you want.
-  * You can dismiss (if presented) the `viewController` when you're done.
-  *
-  * This method will get called only after the validation is successful, i.e., after the user has filled all the text fields.
-  *
-  * - Parameter otp: The full otp string entered.
-  * - Parameter viewController: The otp view controller.
-  *
-  * - Author: Badhan Ganesh
-  */
- 
- }
-
- func didClose(_ viewController: BJOTPViewController) {
- 
- /**
-  * This method will get called whenever the otp view controller is closed, either by popping, dismissing, or tapping the close button.
-  *
-  * Use this to invalidate any timers, do clean-ups, etc..
-  *
-  * - Parameter viewController: The otp view controller.
-  *
-  * - Author: Badhan Ganesh
-  */
-  
- }
-
- func didTap(footer button: UIButton, from viewController: BJOTPViewController) {
- 
- /**
-  * This delegate method will get called when the footer button at the bottom is tapped. Use this to resend one time code from the server
-  *
-  * This method will only be called when the `shouldFooterBehaveAsButton` is `true`.
-  *
-  * - Parameter button: The button that's tapped.
-  * - Parameter viewController: The otp view controller. Use this to show loaders, spinners, present any other view controllers on top etc..
-  *
-  * - Author: Badhan Ganesh
-  */
-  
- }
- ```
- * - Author: Badhan Ganesh
  */
 open class BJOTPViewController: UIViewController {
     
@@ -186,23 +97,23 @@ open class BJOTPViewController: UIViewController {
     private var allTextFields: [BJOTPTextField] = []
     private var textFieldsIndexes: [BJOTPTextField: Int] = [:]
     
-    private var brandImageView: UIImageView?
     private var closeButton: UIButton?
     private var stackView: UIStackView!
     private var keyboardIsOn: Bool = false
+    private var headingTitleLabel: UILabel?
+    private var brandImageView: UIImageView?
     private var masterStackView: UIStackView!
     private var keyboardOffsetDuringEditing: CGFloat = 0.0
-    private var headingTitleLabel: UILabel?
     
-    private var footerButton: BJOTPAuthenticateButton?
     private var primaryHeaderLabel: UILabel?
     private var secondaryHeaderLabel: UILabel?
     private var headerTextsStackView: UIStackView?
+    private var footerButton: BJOTPAuthenticateButton?
     
     private var authenticateButton: BJOTPAuthenticateButton!
+    private var headingTitleLabelTopConstraint: NSLayoutConstraint?
     private var masterStackViewCenterYConstraint: NSLayoutConstraint!
     private var originalMasterStackViewCenterYConstraintConstant: CGFloat!
-    private var headingTitleLabelTopConstraint: NSLayoutConstraint?
     
     private weak var currentTextField: BJOTPTextField? = nil
     
@@ -250,7 +161,7 @@ open class BJOTPViewController: UIViewController {
     /**
      * Setting this to true opens up the keyboard for the very first text field.
      *
-     * Default is `false`. Consider the `hideLabelsWhenEditing` property when setting this one to `true`, because when the keyboard is open as soon as the view controller is presented/pushed, if `hideLabelsWhenEditing` is `true`, the labels will be hidden initially as a result, and the user won't even know that the labels exist. It will be a better user experience if the user sees the labels initially since it guides them what to do. Choose wisely.
+     * Default is `false`. Consider the ``hideLabelsWhenEditing`` property when setting this one to `true`, because when the keyboard is open as soon as the view controller is presented/pushed, if ``hideLabelsWhenEditing`` is `true`, the labels will be hidden initially as a result, and the user won't even know that the labels exist. It will be a better user experience if the user sees the labels initially since it guides them what to do. Choose wisely.
      *
      * - Author: Badhan Ganesh
      */
@@ -259,7 +170,7 @@ open class BJOTPViewController: UIViewController {
     /**
      * The color that will be used overall for the UI elements. Set this if you want a common color to be used in the view controller instead of worrying about each UI element's color.
      *
-     * Separate colors can also be used for each UI element as allowed by the view controller (via public properties), which will override this property (`accentColor`). Default is `UIColor.systemBlue`
+     * Separate colors can also be used for each UI element as allowed by the view controller (via public properties), which will override this property (``accentColor``). Default is `UIColor.systemBlue`
      *
      * - Author: Badhan Ganesh
      */
@@ -291,7 +202,7 @@ open class BJOTPViewController: UIViewController {
     /**
      * The color of the authenticate button.
      *
-     * Settings this color will override the `accentColor`.
+     * Settings this color will override the ``accentColor``.
      *
      * - Author: Badhan Ganesh
      */
@@ -305,7 +216,7 @@ open class BJOTPViewController: UIViewController {
     /**
      * The title of the authenticate button.
      *
-     * Settings this color will override the `accentColor`.
+     * Settings this will automatically update the button title in UI.
      *
      * - Author: Badhan Ganesh
      */
@@ -369,7 +280,7 @@ open class BJOTPViewController: UIViewController {
      *
      * Default is `true`.
      *
-     * Tapping "Yes" will auto-fill all the textfields with copied text and will call the `authenticate` delegate method.
+     * Tapping "Yes" will auto-fill all the textfields with copied text and will call the ``BJOTPViewControllerDelegate/authenticate(_:from:)`` delegate method.
      *
      * Pop-up won't be shown for the same string copied over and over. Clipboard will be checked when the app comes to foreground, and when the view controller's view finished appearing.
      *
@@ -378,7 +289,7 @@ open class BJOTPViewController: UIViewController {
     @objc public var shouldPromptUserToPasteCopiedStringFromClipboard: Bool = true
     
     /**
-     * Setting this to `true` will automatically paste compatible text that is present in the clipboard and call the `authenticate` delegate method without asking any questions. This property will take precedence over `shouldPromptUserToPasteCopiedStringFromClipboard` property.
+     * Setting this to `true` will automatically paste compatible text that is present in the clipboard and call the `authenticate` delegate method without asking any questions. This property will take precedence over ``shouldPromptUserToPasteCopiedStringFromClipboard`` property.
      *
      * Default is `false`.
      *
@@ -402,7 +313,7 @@ open class BJOTPViewController: UIViewController {
     @objc public var hapticsEnabled: Bool = true
     
     /**
-     * Asks whether the footer should behave as a button or just a normal label. Button will pass the action to the delegate method `didTap(footer button: UIButton)`.
+     * Asks whether the footer should behave as a button or just a normal label. Button will pass the action to the delegate method ``BJOTPViewControllerDelegate/didTap(footer:from:)``
      *
      * If `true`, the color of the footer will be `.systemBlue`, and gray otherwise. Default is `false`.
      *
@@ -413,7 +324,7 @@ open class BJOTPViewController: UIViewController {
     /**
      * The color of the footer.
      *
-     * This color will be applied only when `shouldFooterBehaveAsButton` is set to `true`. Default gray color will be used otherwise. The accent color will be used by default if there is no `footerButtonColor` supplied. 
+     * This color will be applied only when ``shouldFooterBehaveAsButton`` is set to `true`. Default gray color will be used otherwise. The accent color will be used by default if there is no ``footerButtonColor`` supplied.
      *
      * - Author: Badhan Ganesh
      */
@@ -437,7 +348,7 @@ open class BJOTPViewController: UIViewController {
     /**
      * The color of the close button.
      *
-     * The accent color will be used by default if there is no `closeButtonColor` supplied.
+     * The accent color will be used by default if there is no ``closeButtonColor`` supplied.
      *
      * - Author: Badhan Ganesh
      */
@@ -452,10 +363,10 @@ open class BJOTPViewController: UIViewController {
     //
 
     /**
-     * The init method to use to construct `BJOTPViewController`.
+     * The init method to use to construct ``BJOTPViewController/BJOTPViewController``.
      *
      * - Parameter heading: The main heading title that will be displayed at the very top in case of a modal view controller, navigation bar title in case of navigation controller.
-     * - Parameter delegate: The delegate object that is responsible for handling events sent by `BJOTPViewController`,
+     * - Parameter delegate: The delegate object that is responsible for handling events sent by ``BJOTPViewController/BJOTPViewController``,
      * for example button tap event.
      * - Parameter numberOfOtpCharacters: The number of characters the view controller accepts. Generally 6 chars is the rule.
      */
@@ -589,9 +500,6 @@ open class BJOTPViewController: UIViewController {
     
     deinit {
         self.removeListeners()
-        self.allTextFields.removeAll()
-        self.textFieldsIndexes.removeAll()
-        debugPrint("**********\nBJOTPViewController deinit being called\n**********")
     }
 }
 
@@ -665,8 +573,8 @@ extension BJOTPViewController: UITextFieldDelegate {
                 
                 autoFillBuffer.append(string)
 
-                ///`checkOtpFromMessagesCount` below specifically checks if the entered string is less than the maximum allowed characters.
-                ///Since we are debouncing it, `checkOtpFromMessagesCount` will get called only once.
+                ///``checkOtpFromMessagesCount`` below specifically checks if the entered string is less than the maximum allowed characters.
+                ///Since we are debouncing it, ``checkOtpFromMessagesCount`` will get called only once.
                 ///And we don't allow any characters that are less than the allowed ones.
                 
                 NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(BJOTPViewController.checkOtpFromMessagesCount), object: nil)
@@ -674,7 +582,7 @@ extension BJOTPViewController: UITextFieldDelegate {
 
                 ///We check if the auto-fill from SMS has finished entering all the characters.
                 ///In this case, we need only up to the maximum number of otp characters set by the developer.
-                ///At a later stage, this might be controlled by a flag which will strictly allow only equal number of characters set by the `numberOfOtpCharacters` property.
+                ///At a later stage, this might be controlled by a flag which will strictly allow only equal number of characters set by the ``numberOfOtpCharacters`` property.
                 
                 if autoFillBuffer.count == numberOfOtpCharacters {
                     var finalOTP = ""
@@ -748,7 +656,7 @@ extension BJOTPViewController: UITextFieldDelegate {
     /**
      * This method detects if the auto-filled code from SMS is less than that of the allowed number of characters.
      *
-     * This checking needs to be done to come to a conclusion on when to populate the code (stored in `autoFillBuffer`) in text fields from SMS. We don't need to populate any characters that are less than what is allowed max..
+     * This checking needs to be done to come to a conclusion on when to populate the code (stored in ``autoFillBuffer``) in text fields from SMS. We don't need to populate any characters that are less than what is allowed max..
      *
      * - Author: Badhan Ganesh
      */
@@ -1282,8 +1190,8 @@ extension BJOTPViewController {
     /**
      * Responsible for checking if a new text (with same no. of allowed characters) has been copied to clipboard or not, and then prompting (via alert) the user to paste it, or auto-paste it based on the below attributes:
      *
-     * * `shouldPromptUserToPasteCopiedStringFromClipboard`
-     * * `shouldAutomaticallyPasteCopiedStringFromClipboard`
+     * * ``shouldPromptUserToPasteCopiedStringFromClipboard``
+     * * ``shouldAutomaticallyPasteCopiedStringFromClipboard``
      *
      * - Author: Badhan Ganesh
      */
