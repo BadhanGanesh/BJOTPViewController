@@ -25,7 +25,7 @@ self.present(oneTimePasswordVC, animated: true, completion: nil)
 
 ## Example Code
 
-The following snippet can be used as is to create and configire an otp view controller
+The following snippet can be used as is to create and configire an otp view controller. Point to note is that the below code requires iOS 13.0.
 
 ```swift
 import UIKit
@@ -128,7 +128,7 @@ extension ViewController {
 ## Topics
 ### All Properties
 
-See below for an exhaustive list of all the properties available
+Click below class for an exhaustive list of all the properties and methods available
 
 - ``BJOTPViewController/BJOTPViewController``
 

@@ -40,9 +40,3 @@ A very simple and neat-looking view controller that lets you type in OTPs quick 
 ---
 
 ![App Screens 2](app_screens_2.png)
-
-## Topics
-
-### Technical Documentation
-
-- <doc:Usage>

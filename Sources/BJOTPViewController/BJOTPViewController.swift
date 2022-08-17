@@ -34,7 +34,7 @@ import UIKit
  */
 @objc public protocol BJOTPViewControllerDelegate {
     /**
-     * This method gets called when the user has entered all the otp characters and tapped the button.
+     * This method gets called when the user has entered all the otp characters and tapped the authenticate button.
      * Use this delegate method to make API calls, show loading animation in `viewController`, do whatever you want.
      * You can dismiss (if presented) the `viewController` when you're done.
      *
@@ -48,7 +48,7 @@ import UIKit
     @objc func authenticate(_ otp: String, from viewController: BJOTPViewController)
     
     /**
-     * This method will get called whenever the otp view controller is closed, either by popping, dismissing, or tapping the close button.
+     * This method will get called whenever the otp view controller is closed, either by popping, dismissing, or tapping the close button. The close button will appear only when the otp view controller is presented modally. Back button will be present in case of a pushed view controller.
      *
      * Use this to invalidate any timers, do clean-ups, etc..
      *
