@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "BJOTPViewController",
-    platforms: [.iOS(.v11)],
+    platforms: [.iOS(.v11), .macCatalyst(.v13)],
     products: [
         .library(
             name: "BJOTPViewController",
