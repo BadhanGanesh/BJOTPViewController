@@ -19,7 +19,6 @@ Check out the <a href="https://badhanganesh.github.io/BJOTPViewController/docume
 -----
 ![App Screens 2](.app_screens_2.png)
 
-
 ## License
 
 This code is distributed under the terms and conditions of the [MIT license](LICENSE).
