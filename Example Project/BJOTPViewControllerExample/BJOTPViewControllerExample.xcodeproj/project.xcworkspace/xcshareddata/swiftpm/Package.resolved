@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BadhanGanesh/BJOTPViewController",
       "state" : {
-        "branch" : "develop",
-        "revision" : "bcb05d98afa5a052a5b076c1a791552facf4fb7b"
+        "revision" : "62bdf22db225dfe86c1849ccdd1a7a98c976fffd",
+        "version" : "2.6.0"
       }
     }
   ],

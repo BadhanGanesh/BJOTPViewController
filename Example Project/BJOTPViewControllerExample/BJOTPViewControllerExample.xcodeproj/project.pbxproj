@@ -12,7 +12,7 @@
 		53741DEA272713B80006C219 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53741DE8272713B80006C219 /* Main.storyboard */; };
 		53741DEC272713BC0006C219 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53741DEB272713BC0006C219 /* Assets.xcassets */; };
 		53741DEF272713BC0006C219 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53741DED272713BC0006C219 /* LaunchScreen.storyboard */; };
-		53B81F93285769C4003C8020 /* BJOTPViewController in Frameworks */ = {isa = PBXBuildFile; productRef = 53B81F92285769C4003C8020 /* BJOTPViewController */; };
+		53E7410E28AD81870016CF32 /* BJOTPViewController in Frameworks */ = {isa = PBXBuildFile; productRef = 53E7410D28AD81870016CF32 /* BJOTPViewController */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,7 +24,6 @@
 		53741DEE272713BC0006C219 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		53741DF0272713BC0006C219 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		53E3E7032727E93D00A0D29B /* BJOTPViewControllerExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BJOTPViewControllerExample.entitlements; sourceTree = "<group>"; };
-		53FCEDD2274030EB0005477F /* BJOTPViewController */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BJOTPViewController; path = ../../..; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,7 +31,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				53B81F93285769C4003C8020 /* BJOTPViewController in Frameworks */,
+				53E7410E28AD81870016CF32 /* BJOTPViewController in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,7 +58,6 @@
 			isa = PBXGroup;
 			children = (
 				53E3E7032727E93D00A0D29B /* BJOTPViewControllerExample.entitlements */,
-				53FCEDD2274030EB0005477F /* BJOTPViewController */,
 				53741DE2272713B80006C219 /* AppDelegate.swift */,
 				53741DE6272713B80006C219 /* ViewController.swift */,
 				53741DE8272713B80006C219 /* Main.storyboard */,
@@ -87,7 +85,7 @@
 			);
 			name = BJOTPViewControllerExample;
 			packageProductDependencies = (
-				53B81F92285769C4003C8020 /* BJOTPViewController */,
+				53E7410D28AD81870016CF32 /* BJOTPViewController */,
 			);
 			productName = BJOTPViewControllerExample;
 			productReference = 53741DDF272713B80006C219 /* BJOTPViewControllerExample.app */;
@@ -118,7 +116,7 @@
 			);
 			mainGroup = 53741DD6272713B80006C219;
 			packageReferences = (
-				53B81F91285769C4003C8020 /* XCRemoteSwiftPackageReference "BJOTPViewController" */,
+				53E7410C28AD81870016CF32 /* XCRemoteSwiftPackageReference "BJOTPViewController" */,
 			);
 			productRefGroup = 53741DE0272713B80006C219 /* Products */;
 			projectDirPath = "";
@@ -396,20 +394,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		53B81F91285769C4003C8020 /* XCRemoteSwiftPackageReference "BJOTPViewController" */ = {
+		53E7410C28AD81870016CF32 /* XCRemoteSwiftPackageReference "BJOTPViewController" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/BadhanGanesh/BJOTPViewController";
 			requirement = {
-				branch = develop;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		53B81F92285769C4003C8020 /* BJOTPViewController */ = {
+		53E7410D28AD81870016CF32 /* BJOTPViewController */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 53B81F91285769C4003C8020 /* XCRemoteSwiftPackageReference "BJOTPViewController" */;
+			package = 53E7410C28AD81870016CF32 /* XCRemoteSwiftPackageReference "BJOTPViewController" */;
 			productName = BJOTPViewController;
 		};
 /* End XCSwiftPackageProductDependency section */
