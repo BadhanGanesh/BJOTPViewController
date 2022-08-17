@@ -1,12 +1,11 @@
 //
 //  UIViewControllerExtensions.swift
-//  swiftextensions
 //  Created by Badhan Ganesh on 12/10/18.
 //
 
 // This code is distributed under the terms and conditions of the MIT license.
 
-// Copyright © 2018 Badhan Ganesh
+// Copyright © 2022 Badhan Ganesh
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -58,7 +57,11 @@ extension UIViewController {
             alert.addAction(secondAction)
         }
         
-        self.present(alert, animated: true, completion: nil)
+        if let vc = self.presentedViewController {
+            vc.present(alert, animated: true, completion: nil)
+        } else {
+            self.present(alert, animated: true, completion: nil)
+        }
     }
     
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {

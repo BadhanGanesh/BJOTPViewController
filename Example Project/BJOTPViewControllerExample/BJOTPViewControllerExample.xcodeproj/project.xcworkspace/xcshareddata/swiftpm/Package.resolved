@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "bjotpviewcontroller",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/BadhanGanesh/BJOTPViewController",
+      "state" : {
+        "branch" : "develop",
+        "revision" : "bcb05d98afa5a052a5b076c1a791552facf4fb7b"
+      }
+    }
+  ],
+  "version" : 2
+}

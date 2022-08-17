@@ -5,7 +5,7 @@
 
 // This code is distributed under the terms and conditions of the MIT license.
 
-// Copyright © 2019 Badhan Ganesh
+// Copyright © 2022 Badhan Ganesh
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ final class BJOTPAuthenticateButton: UIButton {
     
     init() {
         super.init(frame: .zero)
-        self.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold).normalized()
+        self.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
     }
     
     required init?(coder: NSCoder) {
@@ -46,7 +46,7 @@ final class BJOTPAuthenticateButton: UIButton {
         if animate {
             UIView.animate(withDuration: 0.15) {
                 self.transform = .init(scaleX: 0.97, y: 0.98)
-                self.alpha = 0.6
+                self.alpha = 0.8
             }
         }
         self.generateHaptic()
