@@ -1,6 +1,5 @@
 //
 //  UIColorExtensions.swift
-//
 //  Created by BadhanGanesh on 12/01/20.
 //
 
