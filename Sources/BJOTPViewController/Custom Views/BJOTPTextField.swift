@@ -28,13 +28,14 @@
 
 import UIKit
 
-@objc public protocol BJMenuActionDelegate {
+@objc public protocol BJOTPTextFieldDelegate {
     @objc func canPerform(_ action: Selector) -> Bool
+    @objc func didPressDeleteKey(_ sender: UITextField)
 }
 
 final class BJOTPTextField: UITextField {
     
-    weak var menuActionDelegate: BJMenuActionDelegate? = nil
+    weak var menuActionDelegate: BJOTPTextFieldDelegate? = nil
     
     override func caretRect(for position: UITextPosition) -> CGRect {
         return .init(origin: .init(x: self.bounds.midX, y: self.bounds.origin.y), size: .init(width: 0.1, height: 0.1))
@@ -51,6 +52,11 @@ final class BJOTPTextField: UITextField {
             super.canPerformAction(action, withSender: sender)
         }
         return super.canPerformAction(action, withSender: sender)
+    }
+    
+    override func deleteBackward() {
+        super.deleteBackward()
+        menuActionDelegate?.didPressDeleteKey(self)
     }
     
 }

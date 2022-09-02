@@ -27,6 +27,7 @@
 
 
 import UIKit
+
 /**
  * This protocol declares methods that are essential to use ``BJOTPViewController/BJOTPViewController``. They are used to handle button taps that happen during various scenarios, for example close button tap action.
  *
@@ -72,6 +73,21 @@ import UIKit
 }
 
 /**
+ * The style that is applied to the otp textfields.
+ *
+ * - Standard - TextField has border with white background.
+ * - AppleDot - TextField Placeholder will be empty circle without any background or border.
+ * - AppleDash - TextField Placeholder will be dash without any background or border.
+ * - Contrast - TextField background color will be clear with border.
+ * - MagicalContrast - TextField background color will be clear without border. The borders will be drawn one by one as the fields are becoming first responder. In Dark Mode, pasting content in the fields will animate the borders to gray.
+ *
+ * - Author: Badhan Ganesh
+ */
+@objc public enum OTPFieldStyle: Int {
+    case Standard, AppleDot, AppleDash, Contrast, MagicalContrast
+}
+
+/**
  * A simple and neat-looking view controller that lets you type in OTPs quick and easy
  *
  * This is intended to be a drag and drop view controller that gets the work done quickly, in and out, that's it. No fancy customizations, no cluttering the screen with tons of UI elements and crazy colors. You'll be good to go with the default settings.
@@ -94,8 +110,8 @@ open class BJOTPViewController: UIViewController {
     
     private var headingString: String
     private let numberOfOtpCharacters: Int
-    private var allTextFields: [BJOTPTextField] = []
-    private var textFieldsIndexes: [BJOTPTextField: Int] = [:]
+    private var allTextFields: [UITextField] = []
+    private var textFieldsIndexes: [UITextField: Int] = [:]
     
     private var closeButton: UIButton?
     private var stackView: UIStackView!
@@ -127,6 +143,7 @@ open class BJOTPViewController: UIViewController {
             if stringToPaste.count == self.numberOfOtpCharacters {
                 for (idx, element) in stringToPaste.enumerated() {
                     allTextFields[idx].text = String(element)
+                    style == .Contrast || style == .MagicalContrast ? self.deactivateTextFieldBorder(self.allTextFields[idx]) : doNothing()
                 }
                 self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
                 self.informDelegate(stringToPaste, from: self)
@@ -194,7 +211,9 @@ open class BJOTPViewController: UIViewController {
     @objc public var currentTextFieldColor: UIColor? {
         willSet {
             if let tf = currentTextField {
-                tf.setBorder(amount: 3, borderColor: (newValue ?? self.accentColor).withAlphaComponent(0.4), duration: 0)
+                if style == .Standard || style == .MagicalContrast {
+                    tf.setBorder(amount: 3, borderColor: (newValue ?? self.accentColor).withAlphaComponent(0.4), duration: 0)
+                }
             }
         }
     }
@@ -353,6 +372,41 @@ open class BJOTPViewController: UIViewController {
      * - Author: Badhan Ganesh
      */
     @objc public var closeButtonColor: UIColor?
+    
+    /**
+     * The style of the individual otp textfield.
+     *
+     * It incorporates visual and animation flavors to the textfield. Default is ``BJOTPViewController/OTPFieldStyle/Standard``.
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc public var style: OTPFieldStyle = .Standard
+    
+    /**
+     * A Boolean value that indicates whether a text object disables copying, and in some cases, prevents recording/broadcasting and also hides the text.
+     *
+     * Default is `true`, because this view controller is primarily made for one time passcodes.
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc public var secureTextEntry: Bool = true
+    
+    /**
+     * The color of the title label of the authenticate button.
+     *
+     * Default color is white.
+     *
+     * - Author: Badhan Ganesh
+     */
+    @objc public var authenticateButtonTitleColor: UIColor? {
+        willSet {
+            UIView.animate(withDuration: 0.3) {
+                guard self.authenticateButton != nil else { return }
+                self.authenticateButton.setTitleColor(newValue ?? .white, for: .normal)
+            }
+        }
+    }
+
     
     //
     ////////////////////////////////////////////////////////////////
@@ -557,6 +611,7 @@ extension BJOTPViewController: UITextFieldDelegate {
                 
                 for (idx, element) in string.enumerated() {
                     allTextFields[idx].text = String(element)
+                    style == .Contrast || style == .MagicalContrast ? deactivateTextFieldBorder(allTextFields[idx]) : doNothing()
                 }
                 
                 self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
@@ -590,6 +645,7 @@ extension BJOTPViewController: UITextFieldDelegate {
                         let otpChar = String(element)
                         finalOTP += otpChar
                         allTextFields[idx].text = otpChar
+                        style == .Contrast || style == .MagicalContrast ? deactivateTextFieldBorder(allTextFields[idx]) : doNothing()
                     }
                     self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
                     self.informDelegate(finalOTP, from: self)
@@ -613,15 +669,29 @@ extension BJOTPViewController: UITextFieldDelegate {
         return false
     }
     
+    func activateTextFieldBorder(_ textField: UITextField) {
+        textField.setBorder(amount: 3, borderColor: (self.currentTextFieldColor ?? self.accentColor).withAlphaComponent(0.4), duration: 0.15)
+    }
+    
+    func deactivateTextFieldBorder(_ textField: UITextField) {
+        textField.setBorder(amount: 1.8, borderColor: UIColor.lightGray.withAlphaComponent(0.28), duration: 0.15)
+    }
+    
     public func textFieldDidBeginEditing(_ textField: UITextField) {
         self.currentTextField = textField as? BJOTPTextField
         textField.roundCorners(amount: 4)
-        textField.setBorder(amount: 3, borderColor: (self.currentTextFieldColor ?? self.accentColor).withAlphaComponent(0.4), duration: 0.15)
+        
+        if style == .Standard || style == .MagicalContrast || style == .Contrast {
+            activateTextFieldBorder(textField)
+        }
     }
     
     public func textFieldDidEndEditing(_ textField: UITextField) {
         self.currentTextField = nil
-        textField.setBorder(amount: 1.8, borderColor: UIColor.lightGray.withAlphaComponent(0.3), duration: 0.15)
+        
+        if style == .Standard || style == .MagicalContrast || style == .Contrast {
+            deactivateTextFieldBorder(textField)
+        }
     }
     
     private func setNextResponder(_ index: Int?, direction: Direction) {
@@ -637,7 +707,7 @@ extension BJOTPViewController: UITextFieldDelegate {
         }
     }
     
-    private func resignFirstResponder(textField: BJOTPTextField?) {
+    private func resignFirstResponder(textField: UITextField?) {
         textField?.resignFirstResponder()
         self.touchesEnded(Set.init(arrayLiteral: UITouch()), with: nil)
         var otpString = ""
@@ -680,6 +750,23 @@ extension BJOTPViewController: UITextFieldDelegate {
 extension BJOTPViewController {
     
     internal func constructUI() {
+        
+//        var blur = UIBlurEffect()
+//
+//        if #available(iOS 13.0, *) {
+//            blur = UIBlurEffect(style: UITraitCollection.current.userInterfaceStyle == .dark ? .systemChromeMaterial : .regular)
+//        } else {
+//            blur = UIBlurEffect(style: .regular)
+//        }
+//
+//        let blurView = UIVisualEffectView.init(effect: blur)
+//        blurView.tarmic = false
+//
+//        self.view.addSubview(blurView)
+//        blurView.widthAnchor.constraint(equalTo: self.view.widthAnchor).isActive = true
+//        blurView.heightAnchor.constraint(equalTo: self.view.heightAnchor).isActive = true
+//
+//        self.view.backgroundColor = .clear
         
         /// All of the below UI code is strictly order-sensitive and tightly coupled to their previous elements' layout.
         /// Be careful and try not to change the order of the stuffs. Each UI element is laid out one by one,
@@ -770,19 +857,37 @@ extension BJOTPViewController {
             textField.textContentType = .oneTimeCode
         }
         
-        textField.tarmic = false
+        textField.font = .boldSystemFont(ofSize: 15)
+        textField.tarmic = true
+        textField.placeholder = style == .AppleDash ? "_" : style == .AppleDot ? "⚬" : ""
         textField.delegate = self
-        textField.textColor = .black
         textField.borderStyle = .none
         textField.textAlignment = .center
         textField.roundCorners(amount: 4)
-        textField.backgroundColor = .white
-        textField.isSecureTextEntry = true
+        textField.backgroundColor = style == .MagicalContrast ||
+        style == .AppleDot ||
+        style == .AppleDash ||
+        style == .Contrast ? .clear : .white
         textField.keyboardType = .numberPad
         textField.menuActionDelegate = self
-        textField.setBorder(amount: 1.8, borderColor: UIColor.lightGray.withAlphaComponent(0.28), duration: 0.09)
-        textField.widthAnchor.constraint(equalToConstant: NSObject.newWidth).isActive = numberOfOtpCharacters == 1
-        textField.heightAnchor.constraint(equalTo: textField.widthAnchor, multiplier: 1.0).isActive = true
+        textField.isSecureTextEntry = secureTextEntry
+        
+        if #available(iOS 13.0, *) {
+            textField.textColor = style == .MagicalContrast || style == .AppleDot || style == .AppleDash || style == .Contrast ? .label : .black
+        } else {
+            textField.textColor = .black
+        }
+        
+        let otpDimension = NSObject.deviceIsMacOrIpad ? 65.0 : 50.0
+        let widthConstant = numberOfOtpCharacters == 1 ? NSObject.newWidth : otpDimension
+        let heightConstant = otpDimension * 0.9
+        
+        textField.widthAnchor.constraint(equalToConstant: widthConstant).isActive = true
+        textField.heightAnchor.constraint(equalToConstant: heightConstant).isActive = true
+        
+        if style == .Standard || style == .Contrast {
+            deactivateTextFieldBorder(textField)
+        }
         
         if #available(iOS 12.0, *) {
             textField.textContentType = .oneTimeCode
@@ -890,7 +995,7 @@ extension BJOTPViewController {
             let captionFontMetric = UIFontMetrics.init(forTextStyle: .caption2)
             let footerLabelFont = captionFontMetric.scaledFont(for: .systemFont(ofSize: footerLabelFontSize, weight: .regular))
             
-            footerButton.useHaptics = hapticsEnabled
+            footerButton.useHaptics = false
             footerButton.animate = shouldFooterBehaveAsButton
             footerButton.isUserInteractionEnabled = shouldFooterBehaveAsButton
             
@@ -946,6 +1051,7 @@ extension BJOTPViewController {
         authenticateButton.titleLabel?.font = authenticateButtonFont
         authenticateButton.backgroundColor = self.authenticateButtonColor ?? self.accentColor
         authenticateButton.addTarget(self, action: #selector(authenticateButtonTapped(_:)), for: .touchUpInside)
+        authenticateButton.setTitleColor(authenticateButtonTitleColor ?? .white, for: .normal)
         
         authenticateButton.heightAnchor.constraint(equalToConstant: (NSObject.newHeight * (NSObject.deviceIsiPad ? 90 : 75)) / 100).isActive = true
         
@@ -955,11 +1061,11 @@ extension BJOTPViewController {
     fileprivate func layoutOTPStackView(with subviews: [UIView]) {
         let otpStackView = UIStackView.init(arrangedSubviews: subviews)
         otpStackView.tag = 234
-        otpStackView.spacing = 10
-        otpStackView.alignment = .fill
-        otpStackView.distribution = .fill
-        otpStackView.widthAnchor.constraint(equalToConstant: NSObject.newWidth).isActive = numberOfOtpCharacters >= 5
-        otpStackView.heightAnchor.constraint(equalToConstant: NSObject.newHeight).isActive = numberOfOtpCharacters < 5
+        otpStackView.alignment = .center
+        otpStackView.spacing = 5
+        otpStackView.axis = .horizontal
+        otpStackView.distribution = .fillEqually
+        otpStackView.widthAnchor.constraint(lessThanOrEqualToConstant: NSObject.newWidth).isActive = true
         self.stackView = otpStackView
     }
     
@@ -983,8 +1089,9 @@ extension BJOTPViewController {
         layoutAuthenticateButton(withSibling: self.stackView)
         layoutMasterStackView()
         self.stackView.layoutIfNeeded()
-        self.authenticateButton.widthAnchor.constraint(equalToConstant: self.stackView.bounds.width).isActive = true
-        self.footerButton?.widthAnchor.constraint(equalToConstant: self.stackView.bounds.width).isActive = true
+        self.masterStackView.layoutIfNeeded()
+        self.authenticateButton.widthAnchor.constraint(equalToConstant: self.masterStackView.bounds.width).isActive = true
+        self.footerButton?.widthAnchor.constraint(equalToConstant: self.masterStackView.bounds.width).isActive = true
     }
     
     fileprivate func offsetValueDuringRest() -> CGFloat {
@@ -1165,7 +1272,7 @@ extension BJOTPViewController {
     
 }
 
-extension BJOTPViewController: BJMenuActionDelegate {
+extension BJOTPViewController: BJOTPTextFieldDelegate {
     public func canPerform(_ action: Selector) -> Bool {
         if NSObject.deviceIsMacCatalyst {
             guard UIPasteboard.general.hasStrings else { return false }
@@ -1175,6 +1282,10 @@ extension BJOTPViewController: BJMenuActionDelegate {
             guard let copiedString = Self.clipboardContent else { return false }
             return copiedString.count == numberOfOtpCharacters
         }
+    }
+    
+    public func didPressDeleteKey(_ sender: UITextField) {
+        setNextResponder(textFieldsIndexes[sender as! BJOTPTextField], direction: .left)
     }
 }
 
@@ -1225,6 +1336,7 @@ extension BJOTPViewController {
      * - Author: Badhan Ganesh
      */
     private func informDelegate(_ otp: String, from viewController: BJOTPViewController) {
+        self.view.endEditing(true)
         self.delegate?.authenticate(otp, from: viewController)
     }
     

@@ -12,7 +12,7 @@
 		53741DEA272713B80006C219 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53741DE8272713B80006C219 /* Main.storyboard */; };
 		53741DEC272713BC0006C219 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53741DEB272713BC0006C219 /* Assets.xcassets */; };
 		53741DEF272713BC0006C219 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53741DED272713BC0006C219 /* LaunchScreen.storyboard */; };
-		53E7410E28AD81870016CF32 /* BJOTPViewController in Frameworks */ = {isa = PBXBuildFile; productRef = 53E7410D28AD81870016CF32 /* BJOTPViewController */; };
+		53AD45BA28C1106100E48329 /* BJOTPViewController in Frameworks */ = {isa = PBXBuildFile; productRef = 53AD45B928C1106100E48329 /* BJOTPViewController */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +23,7 @@
 		53741DEB272713BC0006C219 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		53741DEE272713BC0006C219 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		53741DF0272713BC0006C219 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		53AD45B728C10FFC00E48329 /* BJOTPViewController */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = BJOTPViewController; path = ../..; sourceTree = "<group>"; };
 		53E3E7032727E93D00A0D29B /* BJOTPViewControllerExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BJOTPViewControllerExample.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -31,7 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				53E7410E28AD81870016CF32 /* BJOTPViewController in Frameworks */,
+				53AD45BA28C1106100E48329 /* BJOTPViewController in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -42,7 +43,9 @@
 			isa = PBXGroup;
 			children = (
 				53741DE1272713B80006C219 /* BJOTPViewControllerExample */,
+				53AD45B728C10FFC00E48329 /* BJOTPViewController */,
 				53741DE0272713B80006C219 /* Products */,
+				53AD45B828C1106100E48329 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -68,6 +71,13 @@
 			path = BJOTPViewControllerExample;
 			sourceTree = "<group>";
 		};
+		53AD45B828C1106100E48329 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -85,7 +95,7 @@
 			);
 			name = BJOTPViewControllerExample;
 			packageProductDependencies = (
-				53E7410D28AD81870016CF32 /* BJOTPViewController */,
+				53AD45B928C1106100E48329 /* BJOTPViewController */,
 			);
 			productName = BJOTPViewControllerExample;
 			productReference = 53741DDF272713B80006C219 /* BJOTPViewControllerExample.app */;
@@ -99,7 +109,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1300;
-				LastUpgradeCheck = 1300;
+				LastUpgradeCheck = 1400;
 				TargetAttributes = {
 					53741DDE272713B80006C219 = {
 						CreatedOnToolsVersion = 13.0;
@@ -116,7 +126,6 @@
 			);
 			mainGroup = 53741DD6272713B80006C219;
 			packageReferences = (
-				53E7410C28AD81870016CF32 /* XCRemoteSwiftPackageReference "BJOTPViewController" */,
 			);
 			productRefGroup = 53741DE0272713B80006C219 /* Products */;
 			projectDirPath = "";
@@ -223,7 +232,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -280,7 +289,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -310,7 +319,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -325,8 +334,8 @@
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,6";
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 				WATCHOS_DEPLOYMENT_TARGET = 7.0;
 			};
 			name = Debug;
@@ -349,7 +358,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -364,8 +373,8 @@
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,6";
-				TVOS_DEPLOYMENT_TARGET = 11.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TVOS_DEPLOYMENT_TARGET = 12.0;
 				WATCHOS_DEPLOYMENT_TARGET = 7.0;
 			};
 			name = Release;
@@ -393,21 +402,9 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		53E7410C28AD81870016CF32 /* XCRemoteSwiftPackageReference "BJOTPViewController" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/BadhanGanesh/BJOTPViewController";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.6.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
-		53E7410D28AD81870016CF32 /* BJOTPViewController */ = {
+		53AD45B928C1106100E48329 /* BJOTPViewController */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 53E7410C28AD81870016CF32 /* XCRemoteSwiftPackageReference "BJOTPViewController" */;
 			productName = BJOTPViewController;
 		};
 /* End XCSwiftPackageProductDependency section */

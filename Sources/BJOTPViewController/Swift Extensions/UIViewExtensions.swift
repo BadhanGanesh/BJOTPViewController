@@ -28,7 +28,7 @@
 
 import UIKit
 
-@objc enum UIViewPinPosition:Int {
+@objc public enum UIViewPinPosition:Int {
     case topLeft = 0,
          topMiddle,
          topRight,
@@ -76,7 +76,7 @@ extension UIView {
      - Author: Badhan Ganesh
      
      */
-    @objc func pinTo(_ position: UIViewPinPosition, shouldRespectSafeArea: Bool = true, xOffset: CGFloat = 0, yOffset: CGFloat = 0) {
+    @objc public func pinTo(_ position: UIViewPinPosition, shouldRespectSafeArea: Bool = true, xOffset: CGFloat = 0, yOffset: CGFloat = 0) {
         
         guard let superview = self.superview else { return }
         
