@@ -7,6 +7,9 @@ class ViewController: UIViewController {
     var stepper = UIStepper()
     var noOfCharsLabel = UILabel()
     
+    var secondsRemaining = 0
+    var resendWaitTime = 5
+    
     @objc func stepperValueChanged(_ sender: UIStepper) {
         noOfCharsLabel.text = "Number of characters: " + String(Int(sender.value))
     }
@@ -124,8 +127,7 @@ extension ViewController {
         otpScreen.accentColor = [.systemBlue].randomElement()!
         otpScreen.primaryHeaderTitle = primaryLabel
         otpScreen.secondaryHeaderTitle = secondaryLabel
-        otpScreen.footerTitle = "Didn't get verification code?"
-        otpScreen.shouldFooterBehaveAsButton = true
+        otpScreen.shouldFooterBehaveAsButton = false
         otpScreen.authenticateButtonTitle = buttonTitle
         otpScreen.secureTextEntry = false
         otpScreen.style = [.AppleDash, .AppleDot, .Standard, .MagicalContrast, .Contrast].randomElement()!
@@ -134,6 +136,24 @@ extension ViewController {
             otpScreen.brandImage = .init(systemName: imageName)?.withTintColor(.label).withRenderingMode(.alwaysOriginal)
         }
         
+        ///Resend code timer - START
+        
+        self.secondsRemaining = self.resendWaitTime
+        
+        let timer = Timer.init(timeInterval: 1, repeats: true) { timer in
+            otpScreen.footerTitle = "Resend code in " + String(self.secondsRemaining) + " seconds"
+            if self.secondsRemaining == 0 {
+                timer.invalidate()
+                otpScreen.footerTitle = "Code sent. Didn't get verification code?"
+                otpScreen.shouldFooterBehaveAsButton = true
+            }
+            self.secondsRemaining -= 1
+        }
+        
+        RunLoop.main.add(timer, forMode: .common)
+        timer.fire()
+        
+        ///Resend code timer - END
     }
 }
 

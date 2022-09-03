@@ -338,7 +338,22 @@ open class BJOTPViewController: UIViewController {
      *
      * - Author: Badhan Ganesh
      */
-    @objc public var shouldFooterBehaveAsButton: Bool = false
+    @objc public var shouldFooterBehaveAsButton: Bool = false {
+        willSet {
+            var labelTitleColor: UIColor!
+            
+            if #available(iOS 13.0, *) {
+                labelTitleColor = UIColor.secondaryLabel.withAlphaComponent(0.4)
+            } else {
+                labelTitleColor = UIColor(red: 0.23529411764705882, green: 0.23529411764705882, blue: 0.2627450980392157, alpha: 0.6).withAlphaComponent(0.4)
+            }
+            
+            self.footerButton?.animate = newValue
+            self.footerButton?.isUserInteractionEnabled = newValue
+            self.footerButton?.addTarget(self, action: #selector(footerButtonTapped(_:)), for: .touchUpInside)
+            self.footerButton?.setTitleColor(newValue ? (self.footerButtonColor ?? self.accentColor) : labelTitleColor, for: .normal)
+        }
+    }
     
     /**
      * The color of the footer.
